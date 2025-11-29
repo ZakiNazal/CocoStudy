@@ -1,6 +1,7 @@
 export enum ContentType {
   TEXT = 'TEXT',
-  AUDIO = 'AUDIO'
+  AUDIO = 'AUDIO',
+  DOCUMENT = 'DOCUMENT'
 }
 
 export interface Flashcard {

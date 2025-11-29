@@ -22,7 +22,7 @@ export const generateSummary = async (
     parts.push({
       text: `
         You are an expert study companion similar to Coconote. 
-        Analyze the provided content (text or audio). 
+        Analyze the provided content (text, audio, PDF, or document). 
         Create a comprehensive, structured study guide in Markdown format.
         
         The structure must include:
@@ -143,17 +143,20 @@ export const chatWithContext = async (
 ) => {
   const chat = ai.chats.create({
     model: MODEL_NAME,
-    history: [
-      {
-        role: 'user',
-        parts: [{ text: `You are a helpful study tutor. Answer questions based on these notes:\n\n${context}` }],
-      },
-      {
-        role: 'model',
-        parts: [{ text: "Understood. I am ready to help you study these notes." }],
-      },
-      ...history
-    ],
+    config: {
+      systemInstruction: `You are a dedicated and focused AI study assistant. 
+      Your sole purpose is to help the student master the material in the provided notes.
+      
+      STRICT GUIDELINES:
+      1. ONLY answer questions that are related to the provided study notes, academic concepts, or learning strategies.
+      2. If the user asks about unrelated topics (e.g., pop culture, sports, general life advice, jokes not related to the content), YOU MUST POLITELY REFUSE. Say something like: "I am focused on helping you study. Let's get back to the notes."
+      3. Be concise, encouraging, and clear.
+      4. Use formatting (bold, bullet points) to make explanations easy to read.
+      
+      STUDY NOTES CONTEXT:
+      ${context}`
+    },
+    history: history,
   });
 
   const result = await chat.sendMessage({ message: currentMessage });

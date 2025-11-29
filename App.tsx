@@ -5,7 +5,11 @@ import UploadArea from './components/UploadArea';
 import StudySession from './components/StudySession';
 import { generateSummary, generateFlashcards, generateQuiz } from './services/geminiService';
 import { StudySet, ProcessingStatus, ContentType } from './types';
-import { Menu } from 'lucide-react';
+import { Menu, GraduationCap } from 'lucide-react';
+// @ts-ignore
+import mammoth from 'mammoth';
+// @ts-ignore
+import JSZip from 'jszip';
 
 const App: React.FC = () => {
   // Initialize from localStorage or empty array
@@ -40,30 +44,108 @@ const App: React.FC = () => {
     setSavedSets(prev => prev.map(s => s.id === updatedSet.id ? updatedSet : s));
   };
 
-  const handleProcess = async (content: string | File, type: 'text' | 'audio') => {
+  // --- Document Extraction Helpers ---
+  const extractTextFromDocx = async (file: File): Promise<string> => {
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const result = await mammoth.extractRawText({ arrayBuffer });
+      return result.value;
+    } catch (e) {
+      console.error("Docx extraction failed", e);
+      throw new Error("Failed to read Word document.");
+    }
+  };
+
+  const extractTextFromPptx = async (file: File): Promise<string> => {
+    try {
+      const zip = new JSZip();
+      await zip.loadAsync(file);
+      
+      const slideFiles = Object.keys(zip.files).filter(name => 
+        name.startsWith('ppt/slides/slide') && name.endsWith('.xml')
+      );
+      
+      slideFiles.sort((a, b) => {
+        const numA = parseInt(a.match(/slide(\d+)\.xml/)![1] || '0');
+        const numB = parseInt(b.match(/slide(\d+)\.xml/)![1] || '0');
+        return numA - numB;
+      });
+
+      let fullText = "";
+      const parser = new DOMParser();
+
+      for (const filename of slideFiles) {
+        const content = await zip.files[filename].async('string');
+        const xmlDoc = parser.parseFromString(content, "text/xml");
+        const textNodes = xmlDoc.getElementsByTagName("a:t"); 
+        
+        let slideText = "";
+        for (let i = 0; i < textNodes.length; i++) {
+          if (textNodes[i].textContent) {
+            slideText += textNodes[i].textContent + " ";
+          }
+        }
+        
+        if (slideText.trim()) {
+           fullText += `[Slide ${filename.match(/slide(\d+)\.xml/)![1]}]\n${slideText}\n\n`;
+        }
+      }
+      return fullText || "No text found in slides.";
+    } catch (e) {
+      console.error("PPTX extraction failed", e);
+      throw new Error("Failed to read PowerPoint file.");
+    }
+  };
+
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const result = reader.result as string;
+        const base64 = result.split(',')[1];
+        resolve(base64);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleProcess = async (content: string | File, type: 'text' | 'audio' | 'document') => {
     setStatus('analyzing');
     
     try {
       let summary = '';
       let inputData: string | { data: string; mimeType: string } = '';
+      let originalTextForChat = '';
 
-      if (type === 'audio' && content instanceof File) {
-        // Convert File to Base64
-        const base64Data = await new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onloadend = () => {
-            const base64String = (reader.result as string).split(',')[1];
-            resolve(base64String);
-          };
-          reader.onerror = reject;
-          reader.readAsDataURL(content);
-        });
-        
-        inputData = { data: base64Data, mimeType: content.type };
-        summary = await generateSummary(inputData);
-        
-      } else if (type === 'text' && typeof content === 'string') {
+      if (content instanceof File) {
+        const fileType = content.type;
+        const fileName = content.name.toLowerCase();
+
+        if (type === 'audio' || fileType.startsWith('audio/') || fileType.startsWith('video/')) {
+           const base64Data = await fileToBase64(content);
+           inputData = { data: base64Data, mimeType: fileType || 'audio/mp3' };
+           summary = await generateSummary(inputData);
+        } else if (fileType === 'application/pdf' || fileName.endsWith('.pdf')) {
+           const base64Data = await fileToBase64(content);
+           inputData = { data: base64Data, mimeType: 'application/pdf' };
+           summary = await generateSummary(inputData);
+        } else if (fileName.endsWith('.docx')) {
+           const text = await extractTextFromDocx(content);
+           inputData = text;
+           originalTextForChat = text;
+           summary = await generateSummary(text);
+        } else if (fileName.endsWith('.pptx')) {
+           const text = await extractTextFromPptx(content);
+           inputData = text;
+           originalTextForChat = text;
+           summary = await generateSummary(text);
+        } else {
+           throw new Error("Unsupported file type");
+        }
+      } else if (typeof content === 'string') {
         inputData = content;
+        originalTextForChat = content;
         summary = await generateSummary(content);
       }
 
@@ -73,7 +155,6 @@ const App: React.FC = () => {
       setStatus('generating_quiz');
       const quiz = await generateQuiz(summary);
 
-      // Create new set
       const newSet: StudySet = {
         id: Date.now().toString(),
         title: extractTitle(summary) || 'New Study Session',
@@ -81,8 +162,8 @@ const App: React.FC = () => {
         summary,
         flashcards,
         quiz,
-        originalContent: typeof content === 'string' ? content : null,
-        contentType: type === 'audio' ? ContentType.AUDIO : ContentType.TEXT,
+        originalContent: originalTextForChat || null,
+        contentType: type === 'audio' ? ContentType.AUDIO : (type === 'document' ? ContentType.DOCUMENT : ContentType.TEXT),
         chatHistory: []
       };
 
@@ -90,10 +171,10 @@ const App: React.FC = () => {
       setActiveSetId(newSet.id);
       setStatus('complete');
 
-    } catch (error) {
+    } catch (error: any) {
       console.error("Processing failed", error);
       setStatus('error');
-      alert("Something went wrong processing your content. Please try again.");
+      alert(`Error: ${error.message || "Failed to process content."}`);
     }
   };
 
@@ -104,18 +185,18 @@ const App: React.FC = () => {
 
   return (
     <HashRouter>
-      <div className="flex h-screen w-full bg-gray-50 font-sans overflow-hidden">
+      <div className="flex h-screen w-full bg-background font-sans overflow-hidden">
         
         {/* Mobile Sidebar Overlay */}
         {isSidebarOpen && (
           <div 
-            className="fixed inset-0 bg-black/50 z-20 md:hidden"
+            className="fixed inset-0 bg-gray-900/20 backdrop-blur-sm z-30 md:hidden animate-fade-in"
             onClick={() => setIsSidebarOpen(false)}
           />
         )}
 
-        {/* Sidebar Container */}
-        <div className={`fixed inset-y-0 left-0 z-30 transform transition-transform duration-300 md:relative md:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        {/* Sidebar */}
+        <div className={`fixed inset-y-0 left-0 z-40 transform transition-transform duration-300 md:relative md:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
           <Sidebar
             savedSets={savedSets}
             activeSetId={activeSetId}
@@ -131,11 +212,12 @@ const App: React.FC = () => {
         </div>
 
         {/* Main Content */}
-        <main className="flex-1 flex flex-col h-full relative w-full">
+        <main className="flex-1 flex flex-col h-full relative w-full bg-background">
           {!activeSet ? (
-             <div className="flex-1 overflow-y-auto">
+             <div className="flex-1 h-full overflow-hidden relative">
+               {/* Mobile Menu Trigger */}
                <button 
-                 className="md:hidden absolute top-6 left-6 p-2 bg-white rounded-lg shadow-sm text-gray-600 z-10"
+                 className="md:hidden absolute top-6 left-6 p-2 bg-white rounded-xl shadow-sm border border-gray-100 text-gray-600 z-20"
                  onClick={() => setIsSidebarOpen(true)}
                >
                  <Menu size={24} />
