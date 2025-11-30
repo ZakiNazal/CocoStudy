@@ -33,6 +33,7 @@ export interface StudySet {
   originalContent: string | null; // Text content or Transcript
   contentType: ContentType;
   chatHistory?: ChatMessage[];
+  images?: string[]; // Base64 data URIs
 }
 
 export type ProcessingStatus = 'idle' | 'analyzing' | 'generating_flashcards' | 'generating_quiz' | 'complete' | 'error';

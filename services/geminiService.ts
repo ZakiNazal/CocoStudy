@@ -6,6 +6,7 @@ import { Flashcard, QuizQuestion } from "../types";
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 const MODEL_NAME = 'gemini-2.5-flash';
+const IMAGE_MODEL_NAME = 'gemini-2.5-flash-image';
 
 export const generateSummary = async (
   input: string | { data: string; mimeType: string }
@@ -161,4 +162,34 @@ export const chatWithContext = async (
 
   const result = await chat.sendMessage({ message: currentMessage });
   return result.text;
+};
+
+export const generateStudyImage = async (topic: string): Promise<string | null> => {
+  try {
+    const response = await ai.models.generateContent({
+      model: IMAGE_MODEL_NAME,
+      contents: {
+        parts: [{
+          text: `Create a clean, aesthetic, educational illustration explaining the concept of: ${topic}. 
+          Style: Minimalist vector art, soft pastel colors (pink, white, grey), flat design. 
+          Make it suitable for a student's study guide.`
+        }]
+      },
+      config: {
+        imageConfig: {
+          aspectRatio: "16:9"
+        }
+      }
+    });
+
+    for (const part of response.candidates?.[0]?.content?.parts || []) {
+      if (part.inlineData) {
+        return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
+      }
+    }
+    return null;
+  } catch (error) {
+    console.error("Error generating image:", error);
+    return null;
+  }
 };

@@ -164,7 +164,8 @@ const App: React.FC = () => {
         quiz,
         originalContent: originalTextForChat || null,
         contentType: type === 'audio' ? ContentType.AUDIO : (type === 'document' ? ContentType.DOCUMENT : ContentType.TEXT),
-        chatHistory: []
+        chatHistory: [],
+        images: []
       };
 
       setSavedSets(prev => [newSet, ...prev]);

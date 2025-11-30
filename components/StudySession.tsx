@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { StudySet } from '../types';
-import { BookOpen, Layers, CheckCircle, Sparkles, ArrowLeft, RefreshCw, Send, GraduationCap, Edit3, Save, X, Bold, Italic, List, CheckSquare, Lightbulb, MoreHorizontal } from 'lucide-react';
-import { chatWithContext } from '../services/geminiService';
+import { BookOpen, Layers, CheckCircle, Sparkles, ArrowLeft, RefreshCw, Send, GraduationCap, Edit3, Save, X, Bold, Italic, List, CheckSquare, Lightbulb, MoreHorizontal, Image as ImageIcon, Plus } from 'lucide-react';
+import { chatWithContext, generateStudyImage } from '../services/geminiService';
 
 interface StudySessionProps {
   set: StudySet;
@@ -19,6 +19,9 @@ const StudySession: React.FC<StudySessionProps> = ({ set, onBack, onUpdateSet })
   const [isEditing, setIsEditing] = useState(false);
   const [editedSummary, setEditedSummary] = useState(set.summary);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Image Generation State
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
 
   // Quiz State
   const [quizAnswers, setQuizAnswers] = useState<number[]>(new Array(set.quiz.length).fill(-1));
@@ -66,6 +69,27 @@ const StudySession: React.FC<StudySessionProps> = ({ set, onBack, onUpdateSet })
             textareaRef.current.selectionEnd = end + prefix.length;
         }
     }, 0);
+  };
+
+  // --- Image Logic ---
+  const handleGenerateImage = async () => {
+    if (isGeneratingImage) return;
+    setIsGeneratingImage(true);
+    try {
+        // Use the title for the prompt
+        const imageData = await generateStudyImage(set.title);
+        if (imageData) {
+            const currentImages = set.images || [];
+            onUpdateSet({ ...set, images: [...currentImages, imageData] });
+        } else {
+            alert("Could not generate image. Please try again.");
+        }
+    } catch (e) {
+        console.error(e);
+        alert("Error generating visual.");
+    } finally {
+        setIsGeneratingImage(false);
+    }
   };
 
   // --- Flashcard Logic ---
@@ -213,15 +237,38 @@ const StudySession: React.FC<StudySessionProps> = ({ set, onBack, onUpdateSet })
 
               {!isEditing ? (
                 <>
-                  <div className="flex justify-between items-start mb-8 border-b border-gray-100 pb-6">
+                  <div className="flex flex-col md:flex-row justify-between items-start mb-8 border-b border-gray-100 pb-6 gap-4">
                     <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 leading-tight">Study Notes</h1>
-                    <button 
-                      onClick={() => setIsEditing(true)}
-                      className="flex items-center gap-2 text-sm font-semibold text-gray-500 hover:text-primary transition-colors px-4 py-2 rounded-full bg-gray-50 hover:bg-primary/5"
-                    >
-                      <Edit3 size={16} /> Edit
-                    </button>
+                    <div className="flex items-center gap-2">
+                         <button 
+                            onClick={handleGenerateImage}
+                            disabled={isGeneratingImage}
+                            className="flex items-center gap-2 text-sm font-semibold text-primary hover:text-primary-dark transition-colors px-4 py-2 rounded-full bg-primary/10 hover:bg-primary/20 disabled:opacity-50"
+                        >
+                            {isGeneratingImage ? <RefreshCw size={16} className="animate-spin" /> : <ImageIcon size={16} />}
+                            {isGeneratingImage ? 'Drawing...' : 'Visualize'}
+                        </button>
+                        <button 
+                            onClick={() => setIsEditing(true)}
+                            className="flex items-center gap-2 text-sm font-semibold text-gray-500 hover:text-primary transition-colors px-4 py-2 rounded-full bg-gray-50 hover:bg-primary/5"
+                        >
+                            <Edit3 size={16} /> Edit
+                        </button>
+                    </div>
                   </div>
+
+                  {/* Generated Images Gallery */}
+                  {set.images && set.images.length > 0 && (
+                      <div className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {set.images.map((img, idx) => (
+                              <div key={idx} className="rounded-2xl overflow-hidden border border-gray-100 shadow-sm relative group">
+                                  <img src={img} alt={`Visual visualization ${idx + 1}`} className="w-full h-auto object-cover hover:scale-105 transition-transform duration-500" />
+                                  <div className="absolute bottom-2 right-2 bg-black/50 text-white text-[10px] px-2 py-1 rounded-full backdrop-blur-sm">AI Generated</div>
+                              </div>
+                          ))}
+                      </div>
+                  )}
+
                   <div className="prose prose-lg prose-gray max-w-none 
                     prose-headings:font-bold prose-headings:text-gray-900 
                     prose-p:text-gray-600 prose-p:leading-relaxed 
