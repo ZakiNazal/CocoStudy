@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="CocoStudy AI - Your AI-powered study companion" />
+    <meta name="author" content="CocoStudy Team" />
+    <meta name="keywords" content="AI, study companion, flashcards, quiz, notes, education, learning" />
+    <title>CocoStudyAI</title>
+    <!-- Small inline SVG favicon (graduation cap) - appears in browser tabs -->
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' fill='%23F0F8FF'/%3E%3Cpath d='M12 2L1 7l11 5 9-4.09V17h2V7L12 2z' fill='%232F4FDB'/%3E%3Cpath d='M3 9v2l9 4 9-4V9L12 13 3 9z' fill='%234169E1'/%3E%3Ccircle cx='17' cy='17' r='2' fill='%232F4FDB'/%3E%3C/svg%3E" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              /* Royal / blue palette */
+              primary: '#4169E1',
+              'primary-dark': '#2F4FDB',
+              secondary: '#93C5FD',
+              accent: '#EFF8FF',
+              background: '#F0F8FF', // Very light blue/white
+              surface: '#FFFFFF',
+              dark: '#2D3748',
+              gray: {
+                50: '#F9FAFB',
+                100: '#F3F4F6',
+                200: '#E5E7EB',
+                300: '#D1D5DB',
+                400: '#9CA3AF',
+                500: '#6B7280',
+                600: '#4B5563',
+                700: '#374151',
+                800: '#1F2937',
+                900: '#111827',
+              }
+            },
+            fontFamily: {
+              sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            },
+            animation: {
+              'fade-in': 'fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
+              'slide-up': 'slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
+              'scale-in': 'scaleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
+              'float': 'float 6s ease-in-out infinite',
+            },
+            keyframes: {
+              fadeIn: {
+                '0%': { opacity: '0' },
+                '100%': { opacity: '1' },
+              },
+              slideUp: {
+                '0%': { transform: 'translateY(20px)', opacity: '0' },
+                '100%': { transform: 'translateY(0)', opacity: '1' },
+              },
+              scaleIn: {
+                '0%': { transform: 'scale(0.9)', opacity: '0' },
+                '100%': { transform: 'scale(1)', opacity: '1' },
+              },
+              float: {
+                '0%, 100%': { transform: 'translateY(0)' },
+                '50%': { transform: 'translateY(-10px)' },
+              }
+            },
+            boxShadow: {
+              'soft': '0 20px 40px -15px rgba(65, 105, 225, 0.12)',
+              'glow': '0 0 20px rgba(65, 105, 225, 0.18)',
+            }
+          },
+        },
+      }
+    </script>
+    <style>
+      /* Custom scrollbar */
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #E5E7EB;
+        border-radius: 10px;
+      }
+
+      .glass-panel {
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+      }
+
+      /* Markdown Checkbox styles */
+      input[type="checkbox"] {
+        accent-color: #4169E1;
+        width: 1.1em;
+        height: 1.1em;
+        margin-right: 0.5em;
+        vertical-align: middle;
+      }
+
+      /* Perspective for flashcards */
+      .perspective-1000 {
+        perspective: 1000px;
+      }
+      .transform-style-3d {
+        transform-style: preserve-3d;
+      }
+      .backface-hidden {
+        backface-visibility: hidden;
+      }
+      .rotate-y-180 {
+        transform: rotateY(180deg);
+      }
+    </style>
+
+<script type="importmap">
+{
+  "imports": {
+    "vite": "https://aistudiocdn.com/vite@^7.2.4",
+    "react-router-dom": "https://aistudiocdn.com/react-router-dom@^7.9.6",
+    "jszip": "https://aistudiocdn.com/jszip@^3.10.1",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.555.0",
+    "react-markdown": "https://aistudiocdn.com/react-markdown@^10.1.0",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
+    "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.1.1",
+    "mammoth": "https://aistudiocdn.com/mammoth@^1.11.0"
+  }
+}
+</script>
+  <script type="module" crossorigin src="/assets/index-CW5idktJ.js"></script>
+</head>
+  <body class="bg-background text-dark antialiased overflow-hidden selection:bg-primary/20 selection:text-primary-dark">
+     <div id="root"></div>
+  </body>
+</html>

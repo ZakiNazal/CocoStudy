@@ -85,7 +85,11 @@ Upload almost anything, and CocoStudy will organize it.
 ## 🎨 Design Philosophy
 
 CocoStudy AI follows a **"Soft & Focused"** design language:
-- **Palette**: Dreamy pastels (Pink `#FF8FAB`, Cream `#FFFAFB`) combined with high-contrast dark text for readability.
+- **Palette**: Dreamy pastels (Royal Blue `#4169E1`, Cream `#F0F8FF`) combined with high-contrast dark text for readability.
+
+### Study Notes Format
+
+- Study notes are generated as professional, concise Markdown guides tailored for learning: each guide includes a TL;DR, executive summary, clear learning objectives, structured outline, detailed notes with subsections, glossary, a short study plan, practice questions with answers, and key takeaways. This format is optimized for fast review and active study.
 - **Shapes**: "Squircles" (super-ellipses) and rounded corners (`rounded-[2.5rem]`) everywhere.
 - **Glassmorphism**: Translucent sidebars and floating navigation pills to create depth.
 - **Motion**: Subtle entry animations (`fade-in`, `slide-up`) make the app feel alive.

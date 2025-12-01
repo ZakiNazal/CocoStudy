@@ -269,14 +269,15 @@ const StudySession: React.FC<StudySessionProps> = ({ set, onBack, onUpdateSet })
                       </div>
                   )}
 
-                  <div className="prose prose-lg prose-gray max-w-none 
-                    prose-headings:font-bold prose-headings:text-gray-900 
-                    prose-p:text-gray-600 prose-p:leading-relaxed 
+                  <div className="prose prose-lg prose-gray max-w-none
+                    prose-headings:font-bold prose-headings:text-gray-900 prose-headings:leading-snug prose-headings:mb-3
+                    prose-p:text-gray-600 prose-p:leading-relaxed prose-p:mb-4
+                    prose-li:text-gray-600 prose-li:mb-2 prose-li:marker:text-primary/50
                     prose-strong:text-primary prose-strong:font-bold
-                    prose-li:text-gray-600 prose-li:marker:text-primary/50
-                    prose-blockquote:border-l-4 prose-blockquote:border-primary/30 prose-blockquote:bg-gray-50 prose-blockquote:py-2 prose-blockquote:px-4 prose-blockquote:rounded-r-lg prose-blockquote:not-italic
+                    prose-blockquote:border-l-4 prose-blockquote:border-primary/30 prose-blockquote:bg-gray-50 prose-blockquote:py-3 prose-blockquote:px-4 prose-blockquote:rounded-r-lg prose-blockquote:not-italic prose-blockquote:mb-4
+                    prose-h2:mt-6 prose-h2:mb-4 prose-h3:mt-4 prose-h3:mb-3
                   ">
-                    <ReactMarkdown>{set.summary}</ReactMarkdown>
+                      <ReactMarkdown>{set.summary}</ReactMarkdown>
                   </div>
                 </>
               ) : (

@@ -3,7 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CocoStudy AI</title>
+    <meta name="description" content="CocoStudy AI - Your AI-powered study companion" />
+    <meta name="author" content="CocoStudy Team" />
+    <meta name="keywords" content="AI, study companion, flashcards, quiz, notes, education, learning" />
+    <title>CocoStudyAI</title>
+    <!-- Small inline SVG favicon (graduation cap) - appears in browser tabs -->
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' fill='%23F0F8FF'/%3E%3Cpath d='M12 2L1 7l11 5 9-4.09V17h2V7L12 2z' fill='%232F4FDB'/%3E%3Cpath d='M3 9v2l9 4 9-4V9L12 13 3 9z' fill='%234169E1'/%3E%3Ccircle cx='17' cy='17' r='2' fill='%232F4FDB'/%3E%3C/svg%3E" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -13,11 +18,12 @@
         theme: {
           extend: {
             colors: {
-              primary: '#FF8FAB', 
-              'primary-dark': '#F56E90',
-              secondary: '#FFC2D1',
-              accent: '#FFF0F5',
-              background: '#FFFAFB', // Very light pink/white
+              /* Royal / blue palette */
+              primary: '#4169E1',
+              'primary-dark': '#2F4FDB',
+              secondary: '#93C5FD',
+              accent: '#EFF8FF',
+              background: '#F0F8FF', // Very light blue/white
               surface: '#FFFFFF',
               dark: '#2D3748',
               gray: {
@@ -61,8 +67,8 @@
               }
             },
             boxShadow: {
-              'soft': '0 20px 40px -15px rgba(255, 143, 171, 0.15)',
-              'glow': '0 0 20px rgba(255, 143, 171, 0.3)',
+              'soft': '0 20px 40px -15px rgba(65, 105, 225, 0.12)',
+              'glow': '0 0 20px rgba(65, 105, 225, 0.18)',
             }
           },
         },
@@ -81,28 +87,17 @@
         background: #E5E7EB;
         border-radius: 10px;
       }
-      ::-webkit-scrollbar-thumb:hover {
-        background: #D1D5DB;
-      }
-      
-      .prose h1, .prose h2, .prose h3 {
-        color: #1F2937;
-        font-weight: 700;
-        letter-spacing: -0.02em;
-      }
-      .prose strong {
-        color: #FF8FAB;
-      }
+
       .glass-panel {
         background: rgba(255, 255, 255, 0.8);
         backdrop-filter: blur(12px);
         -webkit-backdrop-filter: blur(12px);
         border: 1px solid rgba(255, 255, 255, 0.5);
       }
-      
+
       /* Markdown Checkbox styles */
       input[type="checkbox"] {
-        accent-color: #FF8FAB;
+        accent-color: #4169E1;
         width: 1.1em;
         height: 1.1em;
         margin-right: 0.5em;
@@ -142,7 +137,7 @@
 </script>
 </head>
   <body class="bg-background text-dark antialiased overflow-hidden selection:bg-primary/20 selection:text-primary-dark">
-    <div id="root"></div>
+     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
   </body>
 </html>

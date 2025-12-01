@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { UploadCloud, FileText, File, Sparkles, Music, Youtube, FileType, GraduationCap } from 'lucide-react';
+import { UploadCloud, FileText, Sparkles, Music, FileType, GraduationCap } from 'lucide-react';
 import { ProcessingStatus } from '../types';
 
 interface UploadAreaProps {
@@ -29,20 +29,20 @@ const UploadArea: React.FC<UploadAreaProps> = ({ onProcess, status }) => {
       return;
     }
     
-    // Check for PDF, Docx, PPTX
+    // Check for PDF, Docx, PPTX, Images
     if (
       type === 'application/pdf' || 
       name.endsWith('.pdf') ||
       name.endsWith('.docx') || 
       name.endsWith('.pptx') ||
       name.endsWith('.doc') ||
-      name.endsWith('.ppt')
+      name.endsWith('.ppt') 
     ) {
       onProcess(file, 'document');
       return;
     }
 
-    alert("Please upload a supported file: Audio, Video, PDF, Word (.docx), or PowerPoint (.pptx).");
+    alert("Please upload a supported file: Audio, Video, PDF, Word (.docx), PowerPoint (.pptx).");
   };
 
   const handleTextSubmit = () => {
@@ -134,7 +134,7 @@ const UploadArea: React.FC<UploadAreaProps> = ({ onProcess, status }) => {
                    status === 'generating_flashcards' ? 'Creating flashcards...' : 
                    'Drafting the final quiz...'}
                 </h3>
-                <p className="text-gray-400">This usually takes about 10-20 seconds.</p>
+                <p className="text-gray-400">This usually takes about 10-20 seconds. Bring your coffee and wait.</p>
               </div>
             ) : activeTab === 'file' ? (
               <div 
@@ -153,7 +153,7 @@ const UploadArea: React.FC<UploadAreaProps> = ({ onProcess, status }) => {
                   type="file" 
                   ref={fileInputRef} 
                   className="hidden" 
-                  accept="audio/*,video/*,.pdf,.doc,.docx,.ppt,.pptx" 
+                  accept="audio/*,video/*,.pdf,.doc,.docx,.ppt,.pptx,.png,.jpg,.jpeg" 
                   onChange={handleFileChange}
                 />
                 
@@ -207,14 +207,14 @@ const UploadArea: React.FC<UploadAreaProps> = ({ onProcess, status }) => {
                     <Sparkles size={18}/>
                 </div>
                 <h3 className="font-bold text-gray-800 text-sm">Smart Summaries</h3>
-                <p className="text-xs text-gray-500 mt-1">Converts noise into clear, structured notes.</p>
+                <p className="text-xs text-gray-500 mt-1">Converts clutter into clear, structured notes.</p>
             </div>
             <div className="bg-white/60 p-5 rounded-2xl border border-white shadow-sm flex flex-col items-center text-center">
                 <div className="w-10 h-10 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center mb-3">
                     <GraduationCap size={18}/>
                 </div>
                 <h3 className="font-bold text-gray-800 text-sm">Active Recall</h3>
-                <p className="text-xs text-gray-500 mt-1">Auto-generated flashcards for retention.</p>
+                <p className="text-xs text-gray-500 mt-1">Auto-generated flashcards for better understanding.</p>
             </div>
             <div className="bg-white/60 p-5 rounded-2xl border border-white shadow-sm flex flex-col items-center text-center">
                 <div className="w-10 h-10 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center mb-3">
@@ -223,6 +223,9 @@ const UploadArea: React.FC<UploadAreaProps> = ({ onProcess, status }) => {
                 <h3 className="font-bold text-gray-800 text-sm">Multi-Format</h3>
                 <p className="text-xs text-gray-500 mt-1">Upload slides, docs, or audio lectures.</p>
             </div>
+        </div>
+        <div className="mt-10 text-xs text-gray-400">
+          <p>Powered by Google Gemini AI • Built with ❤️ by CocoStudyAI Team</p>
         </div>
       </div>
     </div>

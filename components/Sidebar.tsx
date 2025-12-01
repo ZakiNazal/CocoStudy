@@ -24,7 +24,7 @@ const Sidebar: React.FC<SidebarProps> = ({ savedSets, activeSetId, onSelectSet, 
           <GraduationCap size={22} />
         </div>
         <div>
-          <h1 className="text-xl font-bold text-gray-800 tracking-tight">CocoStudy</h1>
+          <h1 className="text-xl font-bold text-gray-800 tracking-tight">CocoStudyAI</h1>
           <p className="text-[10px] font-semibold text-primary uppercase tracking-widest">AI Companion</p>
         </div>
       </div>

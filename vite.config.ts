@@ -8,6 +8,16 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, (process as any).cwd(), '');
   return {
     plugins: [react()],
+    // Prevent Vite dev server from trying to pre-bundle @google/genai — we rely on the browser import map.
+    optimizeDeps: {
+      exclude: ['@google/genai']
+    },
+    build: {
+      // Do not bundle @google/genai — we load it via the import map in index.html (CDN)
+      rollupOptions: {
+        external: ['@google/genai']
+      }
+    },
     define: {
       // Polyfill process.env.API_KEY so the existing code works without modification
       'process.env.API_KEY': JSON.stringify(env.API_KEY)
