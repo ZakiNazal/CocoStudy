@@ -183,7 +183,7 @@ const App: React.FC = () => {
     const match = markdown.match(/^# (.*$)/m);
     return match ? match[1] : 'Study Note';
   };
-
+  
   return (
     <HashRouter>
       <div className="flex h-screen w-full bg-background font-sans overflow-hidden">
