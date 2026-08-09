@@ -1,81 +1,85 @@
-import React, { useState, useEffect, useRef } from 'react';
-import ReactMarkdown from 'react-markdown';
-import { StudySet } from '../types';
-import { BookOpen, Layers, CheckCircle, Sparkles, ArrowLeft, RefreshCw, Send, GraduationCap, Edit3, Save, X, Bold, Italic, List, CheckSquare, Lightbulb, MoreHorizontal, Image as ImageIcon } from 'lucide-react';
-import { chatWithContext, generateStudyImage } from '../services/ai';
+import { useEffect, useRef, useState } from 'react';
+import { useGSAP } from '@gsap/react';
+import {
+  ArrowLeft,
+  ArrowRight,
+  Bold,
+  CheckSquare,
+  Edit3,
+  Image as ImageIcon,
+  Italic,
+  List,
+  Loader2,
+  Save,
+  Send,
+  X,
+} from 'lucide-react';
+import { gsap, DUR, EASE, prefersReducedMotion } from '../lib/motion';
+import { setMastery } from '../lib/mastery';
 import { getBlobUrl, putBlob } from '../lib/db';
+import { chatWithContext, generateStudyImage } from '../services/ai';
+import MarkdownView from './notes/MarkdownView';
+import MasteryBar from './ui/MasteryBar';
+import Banner from './ui/Banner';
+import type { ChatMessage, StudySet } from '../types';
+
+type Tab = 'notes' | 'cards' | 'quiz' | 'tutor';
+
+const TABS: { id: Tab; label: string }[] = [
+  { id: 'notes', label: 'Notes' },
+  { id: 'cards', label: 'Cards' },
+  { id: 'quiz', label: 'Quiz' },
+  { id: 'tutor', label: 'Tutor' },
+];
 
 interface StudySessionProps {
   set: StudySet;
   onBack: () => void;
-  onUpdateSet: (updatedSet: StudySet) => void;
+  onUpdateSet: (set: StudySet) => void;
 }
 
-const StudySession: React.FC<StudySessionProps> = ({ set, onBack, onUpdateSet }) => {
-  const [activeTab, setActiveTab] = useState<'notes' | 'flashcards' | 'quiz' | 'chat'>('notes');
-  const [currentCardIndex, setCurrentCardIndex] = useState(0);
-  const [isFlipped, setIsFlipped] = useState(false);
-  
-  // Editor State
-  const [isEditing, setIsEditing] = useState(false);
-  const [editedSummary, setEditedSummary] = useState(set.summary);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+export default function StudySession({ set, onBack, onUpdateSet }: StudySessionProps) {
+  const [tab, setTab] = useState<Tab>('notes');
 
-  // Image Generation State
-  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+  // Notes editing
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(set.summary);
+  const textarea = useRef<HTMLTextAreaElement>(null);
+
+  // Images
+  const [imageBusy, setImageBusy] = useState(false);
   const [imageError, setImageError] = useState<string | null>(null);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
 
-  // Quiz State
-  const [quizAnswers, setQuizAnswers] = useState<number[]>(new Array(set.quiz.length).fill(-1));
-  const [showQuizResults, setShowQuizResults] = useState(false);
+  // Cards
+  const [cardIndex, setCardIndex] = useState(0);
+  const [flipped, setFlipped] = useState(false);
 
-  // Chat State
-  const [chatHistory, setChatHistory] = useState<{ role: 'user' | 'model'; text: string }[]>(set.chatHistory || []);
-  const [chatInput, setChatInput] = useState('');
-  const [isChatLoading, setIsChatLoading] = useState(false);
-  const chatEndRef = useRef<HTMLDivElement>(null);
+  // Quiz
+  const [answers, setAnswers] = useState<number[]>(() => new Array(set.quiz.length).fill(-1));
+  const [graded, setGraded] = useState(false);
 
-  // Sync state when props change
+  // Tutor
+  const [chat, setChat] = useState<ChatMessage[]>(set.chatHistory);
+  const [draftMessage, setDraftMessage] = useState('');
+  const [chatBusy, setChatBusy] = useState(false);
+  const [chatError, setChatError] = useState<string | null>(null);
+  const chatEnd = useRef<HTMLDivElement>(null);
+
+  const body = useRef<HTMLDivElement>(null);
+  const mastery = Math.round(setMastery(set.flashcards) * 100);
+
   useEffect(() => {
-    setEditedSummary(set.summary);
-    setChatHistory(set.chatHistory || []);
-    // Reset quiz state when set changes
-    setQuizAnswers(new Array(set.quiz.length).fill(-1));
-    setShowQuizResults(false);
-    setCurrentCardIndex(0);
-  }, [set.id]);
+    setDraft(set.summary);
+    setChat(set.chatHistory);
+    setAnswers(new Array(set.quiz.length).fill(-1));
+    setGraded(false);
+    setCardIndex(0);
+    setFlipped(false);
+    setEditing(false);
+  }, [set.id, set.summary, set.chatHistory, set.quiz.length]);
 
-  // --- Editor Logic ---
-  const handleSaveNotes = () => {
-    onUpdateSet({ ...set, summary: editedSummary });
-    setIsEditing(false);
-  };
-
-  const insertMarkdown = (prefix: string, suffix: string = '') => {
-    if (!textareaRef.current) return;
-    const start = textareaRef.current.selectionStart;
-    const end = textareaRef.current.selectionEnd;
-    const text = editedSummary;
-    const before = text.substring(0, start);
-    const selection = text.substring(start, end);
-    const after = text.substring(end);
-
-    const newText = `${before}${prefix}${selection}${suffix}${after}`;
-    setEditedSummary(newText);
-    
-    // Defer focus restoration
-    setTimeout(() => {
-        if(textareaRef.current) {
-            textareaRef.current.focus();
-            textareaRef.current.selectionStart = start + prefix.length;
-            textareaRef.current.selectionEnd = end + prefix.length;
-        }
-    }, 0);
-  };
-
-  // --- Image Logic ---
-  // Images persist as blob keys; resolve them to object URLs for rendering.
+  // Blob keys resolve to object URLs for rendering.
   useEffect(() => {
     let created: string[] = [];
     let cancelled = false;
@@ -96,9 +100,35 @@ const StudySession: React.FC<StudySessionProps> = ({ set, onBack, onUpdateSet })
     };
   }, [set.images]);
 
-  const handleGenerateImage = async () => {
-    if (isGeneratingImage) return;
-    setIsGeneratingImage(true);
+  useEffect(() => {
+    chatEnd.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [chat]);
+
+  useGSAP(
+    () => {
+      if (prefersReducedMotion()) return;
+      gsap.from('[data-panel]', { opacity: 0, y: 10, duration: DUR.base, ease: EASE.out });
+    },
+    { scope: body, dependencies: [tab] },
+  );
+
+  const wrapSelection = (prefix: string, suffix = '') => {
+    const el = textarea.current;
+    if (!el) return;
+    const { selectionStart: start, selectionEnd: end } = el;
+    setDraft(
+      `${draft.slice(0, start)}${prefix}${draft.slice(start, end)}${suffix}${draft.slice(end)}`,
+    );
+    requestAnimationFrame(() => {
+      el.focus();
+      el.selectionStart = start + prefix.length;
+      el.selectionEnd = end + prefix.length;
+    });
+  };
+
+  const handleVisualize = async () => {
+    if (imageBusy) return;
+    setImageBusy(true);
     setImageError(null);
     try {
       const blob = await generateStudyImage(set.title);
@@ -106,477 +136,513 @@ const StudySession: React.FC<StudySessionProps> = ({ set, onBack, onUpdateSet })
         setImageError('Gemini did not return an image. Try again.');
         return;
       }
-      const key = await putBlob(blob);
-      onUpdateSet({ ...set, images: [...set.images, key] });
+      onUpdateSet({ ...set, images: [...set.images, await putBlob(blob)] });
     } catch (e) {
       setImageError(e instanceof Error ? e.message : 'Could not generate a visual.');
     } finally {
-      setIsGeneratingImage(false);
+      setImageBusy(false);
     }
   };
 
-  // --- Flashcard Logic ---
-  const handleNextCard = () => {
-    setIsFlipped(false);
-    setTimeout(() => {
-      setCurrentCardIndex((prev) => (prev + 1) % set.flashcards.length);
-    }, 200);
-  };
+  const send = async () => {
+    const message = draftMessage.trim();
+    if (!message || chatBusy) return;
 
-  const handlePrevCard = () => {
-    setIsFlipped(false);
-    setTimeout(() => {
-      setCurrentCardIndex((prev) => (prev - 1 + set.flashcards.length) % set.flashcards.length);
-    }, 200);
-  };
-
-  // --- Quiz Logic ---
-  const handleQuizSelect = (questionIndex: number, optionIndex: number) => {
-    if (showQuizResults) return;
-    const newAnswers = [...quizAnswers];
-    newAnswers[questionIndex] = optionIndex;
-    setQuizAnswers(newAnswers);
-  };
-
-  const calculateScore = () => {
-    return quizAnswers.reduce((acc, ans, idx) => {
-      return acc + (ans === set.quiz[idx].correctAnswerIndex ? 1 : 0);
-    }, 0);
-  };
-
-  // --- Chat Logic ---
-  const handleSendMessage = async () => {
-    if (!chatInput.trim() || isChatLoading) return;
-
-    const userMsg = chatInput;
-    setChatInput('');
-    
-    const newHistory = [...chatHistory, { role: 'user', text: userMsg } as const];
-    setChatHistory(newHistory);
-    // Optimistic save
-    onUpdateSet({ ...set, chatHistory: newHistory });
-    
-    setIsChatLoading(true);
+    setDraftMessage('');
+    setChatError(null);
+    const next: ChatMessage[] = [...chat, { role: 'user', text: message }];
+    setChat(next);
+    setChatBusy(true);
 
     try {
-      const response = await chatWithContext(userMsg, set.summary, newHistory);
-      const assistantMsg = { role: 'model', text: response || "I couldn't generate a response." } as const;
-      
-      const finalHistory = [...newHistory, assistantMsg];
-      setChatHistory(finalHistory);
-      onUpdateSet({ ...set, chatHistory: finalHistory });
-
+      const reply = await chatWithContext(message, set.summary, next);
+      const final: ChatMessage[] = [...next, { role: 'model', text: reply }];
+      setChat(final);
+      onUpdateSet({ ...set, chatHistory: final });
     } catch (e) {
-      setChatHistory(prev => [...prev, { role: 'model', text: "Error connecting to AI." }]);
+      setChat(next);
+      setChatError(e instanceof Error ? e.message : 'Could not reach the tutor.');
     } finally {
-      setIsChatLoading(false);
+      setChatBusy(false);
     }
   };
 
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [chatHistory]);
+  const score = answers.reduce(
+    (total, answer, i) => total + (answer === set.quiz[i]?.correctAnswerIndex ? 1 : 0),
+    0,
+  );
+
+  const card = set.flashcards[cardIndex];
 
   return (
-    <div className="flex flex-col h-full bg-background relative overflow-hidden">
-      
-      {/* Background Decor */}
-      <div className="absolute top-0 left-0 w-full h-64 bg-gradient-to-b from-primary/5 to-transparent pointer-events-none"></div>
-
+    <div className="flex h-full flex-col">
       {/* Header */}
-      <div className="px-6 md:px-10 py-6 flex items-center justify-between z-10">
-        <div className="flex items-center gap-4">
-          <button onClick={onBack} className="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-500 hover:text-gray-900 hover:shadow-md transition-all">
-            <ArrowLeft size={20} />
+      <header className="shrink-0 border-b border-[var(--rule)] bg-[var(--paper-2)]">
+        <div className="flex items-start gap-3 px-6 pb-3 pt-5 pl-16 md:pl-6">
+          <button
+            onClick={onBack}
+            aria-label="Back to library"
+            className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-[4px] border border-[var(--rule)] text-[var(--ink-2)] transition-colors hover:border-[var(--ink)] hover:text-[var(--ink)]"
+          >
+            <ArrowLeft size={16} />
           </button>
-          <div>
-            <h2 className="font-bold text-gray-900 text-xl tracking-tight leading-none">{set.title}</h2>
-            <div className="flex items-center gap-2 mt-1">
-                <span className="text-xs font-semibold px-2 py-0.5 rounded bg-primary/10 text-primary uppercase tracking-wide">
-                    {set.contentType}
-                </span>
-                <span className="text-xs text-gray-400">Created {new Date(set.createdAt).toLocaleDateString()}</span>
+
+          <div className="min-w-0 flex-1">
+            <h2 className="display truncate text-lg">{set.title}</h2>
+            <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1">
+              <span className="label">{set.contentType}</span>
+              <span className="numeral text-2xs text-[var(--ink-3)]">
+                {new Date(set.createdAt).toLocaleDateString(undefined, {
+                  month: 'short',
+                  day: 'numeric',
+                  year: 'numeric',
+                })}
+              </span>
+              <span className="numeral text-2xs text-[var(--ink-3)]">
+                {set.flashcards.length} cards
+              </span>
             </div>
           </div>
-        </div>
-        
-        {/* Floating Navigation Pill */}
-        <div className="hidden md:flex bg-white/80 backdrop-blur-md p-1.5 rounded-full border border-white shadow-soft">
-          {(['notes', 'flashcards', 'quiz', 'chat'] as const).map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`px-6 py-2.5 text-sm font-bold rounded-full transition-all duration-300 flex items-center gap-2 ${
-                activeTab === tab
-                  ? 'bg-gray-900 text-white shadow-lg shadow-gray-200'
-                  : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
-              }`}
-            >
-              {tab === 'notes' && <BookOpen size={16} />}
-              {tab === 'flashcards' && <Layers size={16} />}
-              {tab === 'quiz' && <CheckCircle size={16} />}
-              {tab === 'chat' && <Sparkles size={16} />}
-              <span className="capitalize">{tab === 'chat' ? 'AI Tutor' : tab}</span>
-            </button>
-          ))}
-        </div>
-        
-        {/* Mobile Nav Button (Placeholder for simplicity, standard mobile users use bottom or top simple nav) */}
-        <button className="md:hidden p-2 text-gray-600">
-             <MoreHorizontal />
-        </button>
-      </div>
 
-      {/* Mobile Nav (Visible only on small screens) */}
-      <div className="md:hidden flex overflow-x-auto px-6 gap-2 pb-4 no-scrollbar">
-           {(['notes', 'flashcards', 'quiz', 'chat'] as const).map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`px-4 py-2 text-sm font-bold rounded-full whitespace-nowrap transition-all ${
-                activeTab === tab
-                  ? 'bg-gray-900 text-white shadow-md'
-                  : 'bg-white border border-gray-100 text-gray-500'
-              }`}
-            >
-              {tab === 'chat' ? 'AI Tutor' : tab.charAt(0).toUpperCase() + tab.slice(1)}
-            </button>
-          ))}
-      </div>
-
-      {/* Content Area */}
-      <div className="flex-1 overflow-y-auto px-4 md:px-10 pb-10 z-0">
-        <div className="max-w-5xl mx-auto h-full">
-          
-          {activeTab === 'notes' && (
-            <div className="bg-white p-8 md:p-14 rounded-[2.5rem] shadow-soft border border-white min-h-[calc(100%-2rem)] animate-slide-up relative overflow-hidden group">
-               {/* Decorative top gradient */}
-               <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-primary via-secondary to-primary opacity-50"></div>
-
-              {!isEditing ? (
-                <>
-                  <div className="flex flex-col md:flex-row justify-between items-start mb-8 border-b border-gray-100 pb-6 gap-4">
-                    <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 leading-tight">Study Notes</h1>
-                    <div className="flex items-center gap-2">
-                         <button 
-                            onClick={handleGenerateImage}
-                            disabled={isGeneratingImage}
-                            className="flex items-center gap-2 text-sm font-semibold text-primary hover:text-primary-dark transition-colors px-4 py-2 rounded-full bg-primary/10 hover:bg-primary/20 disabled:opacity-50"
-                        >
-                            {isGeneratingImage ? <RefreshCw size={16} className="animate-spin" /> : <ImageIcon size={16} />}
-                            {isGeneratingImage ? 'Drawing...' : 'Visualize'}
-                        </button>
-                        <button 
-                            onClick={() => setIsEditing(true)}
-                            className="flex items-center gap-2 text-sm font-semibold text-gray-500 hover:text-primary transition-colors px-4 py-2 rounded-full bg-gray-50 hover:bg-primary/5"
-                        >
-                            <Edit3 size={16} /> Edit
-                        </button>
-                    </div>
-                  </div>
-
-                  {imageError && (
-                    <p role="alert" className="mb-6 text-sm font-semibold text-red-600">
-                      {imageError}
-                    </p>
-                  )}
-
-                  {/* Generated Images Gallery */}
-                  {imageUrls.length > 0 && (
-                      <div className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {imageUrls.map((img, idx) => (
-                              <div key={idx} className="rounded-2xl overflow-hidden border border-gray-100 shadow-sm relative group">
-                                  <img src={img} alt={`Visual visualization ${idx + 1}`} className="w-full h-auto object-cover hover:scale-105 transition-transform duration-500" />
-                                  <div className="absolute bottom-2 right-2 bg-black/50 text-white text-[10px] px-2 py-1 rounded-full backdrop-blur-sm">AI Generated</div>
-                              </div>
-                          ))}
-                      </div>
-                  )}
-
-                  <div className="prose prose-lg prose-gray max-w-none
-                    prose-headings:font-bold prose-headings:text-gray-900 prose-headings:leading-snug prose-headings:mb-3
-                    prose-p:text-gray-600 prose-p:leading-relaxed prose-p:mb-4
-                    prose-li:text-gray-600 prose-li:mb-2 prose-li:marker:text-primary/50
-                    prose-strong:text-primary prose-strong:font-bold
-                    prose-blockquote:border-l-4 prose-blockquote:border-primary/30 prose-blockquote:bg-gray-50 prose-blockquote:py-3 prose-blockquote:px-4 prose-blockquote:rounded-r-lg prose-blockquote:not-italic prose-blockquote:mb-4
-                    prose-h2:mt-6 prose-h2:mb-4 prose-h3:mt-4 prose-h3:mb-3
-                  ">
-                      <ReactMarkdown>{set.summary}</ReactMarkdown>
-                  </div>
-                </>
-              ) : (
-                <div className="h-full flex flex-col">
-                  <div className="flex items-center gap-2 mb-4 p-2 bg-gray-50 rounded-xl border border-gray-100 sticky top-0 z-10 shadow-sm">
-                     <button onClick={() => insertMarkdown('**', '**')} className="p-2 hover:bg-white hover:shadow-sm rounded-lg text-gray-600 transition-all" title="Bold"><Bold size={18}/></button>
-                     <button onClick={() => insertMarkdown('*', '*')} className="p-2 hover:bg-white hover:shadow-sm rounded-lg text-gray-600 transition-all" title="Italic"><Italic size={18}/></button>
-                     <div className="w-px h-6 bg-gray-200 mx-1"></div>
-                     <button onClick={() => insertMarkdown('\n- ')} className="p-2 hover:bg-white hover:shadow-sm rounded-lg text-gray-600 transition-all" title="List"><List size={18}/></button>
-                     <button onClick={() => insertMarkdown('\n- [ ] ')} className="p-2 hover:bg-white hover:shadow-sm rounded-lg text-gray-600 transition-all" title="Checkbox"><CheckSquare size={18}/></button>
-                     
-                     <div className="flex-1"></div>
-                     <button 
-                       onClick={() => setIsEditing(false)}
-                       className="px-4 py-2 text-gray-500 font-medium hover:bg-gray-200 rounded-lg text-sm flex items-center gap-2"
-                     >
-                       <X size={16} /> Cancel
-                     </button>
-                     <button 
-                       onClick={handleSaveNotes}
-                       className="px-4 py-2 bg-gray-900 text-white font-medium rounded-lg text-sm flex items-center gap-2 hover:bg-black shadow-lg shadow-gray-300"
-                     >
-                       <Save size={16} /> Save
-                     </button>
-                  </div>
-                  <textarea
-                    ref={textareaRef}
-                    value={editedSummary}
-                    onChange={(e) => setEditedSummary(e.target.value)}
-                    className="w-full h-[600px] p-6 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-primary/20 resize-none font-mono text-sm leading-relaxed text-gray-700"
-                    placeholder="Start typing your notes..."
-                  />
-                </div>
-              )}
+          <div className="hidden w-40 shrink-0 sm:block">
+            <div className="flex items-baseline justify-between">
+              <span className="label">Mastered</span>
+              <span className="numeral text-sm font-bold text-[var(--ink)]">{mastery}%</span>
             </div>
-          )}
+            <MasteryBar cards={set.flashcards} height={4} className="mt-1.5" />
+          </div>
+        </div>
 
-          {activeTab === 'flashcards' && (
-            <div className="h-full flex flex-col items-center justify-center animate-fade-in py-6 md:py-12">
-              <div className="w-full max-w-2xl relative">
-                  {/* Stack effect behind card */}
-                  <div className="absolute top-4 left-4 right-4 bottom-0 bg-white/40 rounded-[2.5rem] shadow-sm transform scale-95 translate-y-2 z-0"></div>
-                  <div className="absolute top-8 left-8 right-8 bottom-0 bg-white/20 rounded-[2.5rem] shadow-sm transform scale-90 translate-y-4 z-0"></div>
+        <nav className="flex gap-1 overflow-x-auto px-6 no-scrollbar" aria-label="Study views">
+          {TABS.map(({ id, label }) => (
+            <button
+              key={id}
+              onClick={() => setTab(id)}
+              aria-current={tab === id ? 'page' : undefined}
+              className={`-mb-px shrink-0 border-b-2 px-3 py-2.5 font-mono text-xs uppercase tracking-[0.1em] transition-colors duration-150 ${
+                tab === id
+                  ? 'border-[var(--ink)] text-[var(--ink)]'
+                  : 'border-transparent text-[var(--ink-3)] hover:text-[var(--ink-2)]'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </nav>
+      </header>
 
-                  <div className="relative aspect-[3/2] perspective-1000 group z-10">
-                    <div
-                        onClick={() => setIsFlipped(!isFlipped)}
-                        className={`w-full h-full relative preserve-3d transition-transform duration-700 cubic-bezier(0.4, 0, 0.2, 1) cursor-pointer ${
-                        isFlipped ? 'rotate-y-180' : ''
-                        }`}
-                        style={{ transformStyle: 'preserve-3d' }}
+      {/* Body */}
+      <div ref={body} className="min-h-0 flex-1 overflow-y-auto">
+        {tab === 'notes' && (
+          <div data-panel className="mx-auto max-w-3xl px-6 py-8 sm:px-10">
+            {imageError && (
+              <div className="mb-6">
+                <Banner tone="error" onDismiss={() => setImageError(null)}>
+                  {imageError}
+                </Banner>
+              </div>
+            )}
+
+            {!editing ? (
+              <>
+                <div className="mb-8 flex items-center justify-between border-b border-[var(--rule)] pb-3">
+                  <span className="label">Study guide</span>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleVisualize}
+                      disabled={imageBusy}
+                      className="flex items-center gap-1.5 border border-[var(--rule)] px-3 py-1.5 font-mono text-2xs uppercase tracking-[0.1em] text-[var(--ink-2)] transition-colors hover:border-[var(--ink)] hover:text-[var(--ink)] disabled:opacity-50"
                     >
-                        {/* Front */}
-                        <div 
-                           className="absolute inset-0 backface-hidden bg-white rounded-[2.5rem] shadow-soft border border-white flex flex-col items-center justify-center p-8 md:p-16 text-center hover:shadow-glow transition-shadow duration-300"
-                           style={{ backfaceVisibility: 'hidden' }}
-                        >
-                           <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center mb-6 text-primary">
-                                <Sparkles size={24} />
-                           </div>
-                           <h3 className="text-2xl md:text-3xl font-bold text-gray-800 leading-snug select-none">
-                                {set.flashcards[currentCardIndex].front}
-                           </h3>
-                           <div className="absolute bottom-8 flex flex-col items-center gap-2 opacity-40">
-                                <div className="text-[10px] font-bold uppercase tracking-widest">Question</div>
-                                <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
-                           </div>
-                        </div>
+                      {imageBusy ? (
+                        <Loader2 size={13} className="animate-spin" />
+                      ) : (
+                        <ImageIcon size={13} />
+                      )}
+                      {imageBusy ? 'Drawing' : 'Visualise'}
+                    </button>
+                    <button
+                      onClick={() => setEditing(true)}
+                      className="flex items-center gap-1.5 border border-[var(--rule)] px-3 py-1.5 font-mono text-2xs uppercase tracking-[0.1em] text-[var(--ink-2)] transition-colors hover:border-[var(--ink)] hover:text-[var(--ink)]"
+                    >
+                      <Edit3 size={13} />
+                      Edit
+                    </button>
+                  </div>
+                </div>
 
-                        {/* Back */}
-                        <div 
-                        className="absolute inset-0 backface-hidden bg-gray-900 rounded-[2.5rem] shadow-2xl flex flex-col items-center justify-center p-8 md:p-16 text-center rotate-y-180 text-white"
-                        style={{ transform: 'rotateY(180deg)', backfaceVisibility: 'hidden' }}
-                        >
-                            <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center mb-6 text-white">
-                                <Lightbulb size={24} />
-                            </div>
-                            <p className="text-xl md:text-2xl font-medium leading-relaxed select-none text-gray-100">
-                                {set.flashcards[currentCardIndex].back}
-                            </p>
-                             <div className="absolute bottom-8 flex flex-col items-center gap-2 opacity-40">
-                                <div className="text-[10px] font-bold uppercase tracking-widest">Answer</div>
-                           </div>
-                        </div>
+                {imageUrls.length > 0 && (
+                  <div className="mb-10 grid gap-4 sm:grid-cols-2">
+                    {imageUrls.map((url, i) => (
+                      <figure key={url} className="border border-[var(--rule)]">
+                        <img src={url} alt={`Illustration ${i + 1} for ${set.title}`} className="w-full" />
+                        <figcaption className="label border-t border-[var(--rule)] px-3 py-1.5">
+                          Generated
+                        </figcaption>
+                      </figure>
+                    ))}
+                  </div>
+                )}
+
+                <article>
+                  <MarkdownView>{set.summary}</MarkdownView>
+                </article>
+              </>
+            ) : (
+              <>
+                <div className="mb-3 flex flex-wrap items-center gap-1 border-b border-[var(--rule)] pb-3">
+                  {(
+                    [
+                      [Bold, 'Bold', () => wrapSelection('**', '**')],
+                      [Italic, 'Italic', () => wrapSelection('*', '*')],
+                      [List, 'Bullet', () => wrapSelection('\n- ')],
+                      [CheckSquare, 'Checkbox', () => wrapSelection('\n- [ ] ')],
+                    ] as const
+                  ).map(([Icon, label, action]) => (
+                    <button
+                      key={label}
+                      onClick={action}
+                      title={label}
+                      aria-label={label}
+                      className="flex h-8 w-8 items-center justify-center text-[var(--ink-2)] transition-colors hover:bg-[var(--paper-3)] hover:text-[var(--ink)]"
+                    >
+                      <Icon size={15} />
+                    </button>
+                  ))}
+
+                  <div className="ml-auto flex gap-2">
+                    <button
+                      onClick={() => {
+                        setDraft(set.summary);
+                        setEditing(false);
+                      }}
+                      className="flex items-center gap-1.5 px-3 py-1.5 font-mono text-2xs uppercase tracking-[0.1em] text-[var(--ink-2)] hover:text-[var(--ink)]"
+                    >
+                      <X size={13} />
+                      Cancel
+                    </button>
+                    <button
+                      onClick={() => {
+                        onUpdateSet({ ...set, summary: draft });
+                        setEditing(false);
+                      }}
+                      className="flex items-center gap-1.5 bg-[var(--ink)] px-3 py-1.5 font-mono text-2xs uppercase tracking-[0.1em] text-[var(--paper)] transition-transform active:scale-[0.97]"
+                    >
+                      <Save size={13} />
+                      Save
+                    </button>
+                  </div>
+                </div>
+
+                <textarea
+                  ref={textarea}
+                  value={draft}
+                  onChange={e => setDraft(e.target.value)}
+                  aria-label="Edit study guide"
+                  className="ruled h-[60vh] w-full resize-none border border-[var(--rule)] bg-[var(--paper-2)] px-4 py-[0.4rem] font-mono text-xs leading-[1.6rem] text-[var(--ink)] focus:border-[var(--ink)] focus:outline-none"
+                />
+              </>
+            )}
+          </div>
+        )}
+
+        {tab === 'cards' && (
+          <div data-panel className="mx-auto flex max-w-2xl flex-col items-center px-6 py-10">
+            {!card ? (
+              <p className="py-20 text-[var(--ink-2)]">
+                This set has no cards yet.
+              </p>
+            ) : (
+              <>
+                <div className="flex w-full items-center justify-between border-b border-[var(--rule)] pb-2">
+                  <span className="label">Card</span>
+                  <span className="numeral text-xs text-[var(--ink-2)]">
+                    {cardIndex + 1} / {set.flashcards.length}
+                  </span>
+                </div>
+
+                <button
+                  onClick={() => setFlipped(f => !f)}
+                  aria-label={flipped ? 'Show the question' : 'Show the answer'}
+                  className="mt-8 w-full"
+                  style={{ perspective: '1400px' }}
+                >
+                  <div
+                    className="relative aspect-[8/5] w-full transition-transform duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]"
+                    style={{
+                      transformStyle: 'preserve-3d',
+                      transform: flipped ? 'rotateY(180deg)' : 'none',
+                    }}
+                  >
+                    <div
+                      className="absolute inset-0 flex flex-col justify-between border border-[var(--rule)] bg-[var(--paper-2)] p-8 text-left"
+                      style={{ backfaceVisibility: 'hidden' }}
+                    >
+                      <span className="label">Question</span>
+                      <p className="display text-xl leading-tight">{card.front}</p>
+                      <span className="numeral text-2xs text-[var(--ink-3)]">
+                        Click to turn over
+                      </span>
+                    </div>
+
+                    <div
+                      className="absolute inset-0 flex flex-col justify-between border border-[var(--ink)] bg-[var(--ink)] p-8 text-left"
+                      style={{
+                        backfaceVisibility: 'hidden',
+                        transform: 'rotateY(180deg)',
+                      }}
+                    >
+                      <span className="label" style={{ color: 'var(--paper-3)' }}>
+                        Answer
+                      </span>
+                      <p className="text-lg leading-snug text-[var(--paper)]">{card.back}</p>
+                      <span
+                        className="numeral text-2xs"
+                        style={{ color: 'var(--ink-3)' }}
+                      >
+                        Click to turn back
+                      </span>
                     </div>
                   </div>
-              </div>
-
-              {/* Controls */}
-              <div className="flex items-center gap-6 mt-12 bg-white px-6 py-3 rounded-full shadow-lg shadow-gray-200/50 border border-gray-100">
-                <button 
-                  onClick={handlePrevCard}
-                  className="p-3 hover:bg-gray-100 rounded-full text-gray-400 hover:text-gray-900 transition-all"
-                >
-                  <ArrowLeft size={24} />
                 </button>
-                <div className="flex flex-col items-center w-24">
-                   <span className="font-bold text-gray-900 text-lg">
-                      {currentCardIndex + 1} <span className="text-gray-300 text-base font-normal">/</span> {set.flashcards.length}
-                   </span>
-                </div>
-                <button 
-                  onClick={handleNextCard}
-                  className="p-3 hover:bg-gray-100 rounded-full text-gray-400 hover:text-gray-900 transition-all"
-                >
-                  <ArrowLeft size={24} className="rotate-180" />
-                </button>
-              </div>
-            </div>
-          )}
 
-          {activeTab === 'quiz' && (
-            <div className="max-w-3xl mx-auto space-y-8 animate-slide-up pb-20 pt-4">
-              {showQuizResults && (
-                <div className="bg-white p-10 rounded-[2.5rem] shadow-soft border border-green-100 bg-gradient-to-br from-green-50 to-emerald-50 text-center mb-8 relative overflow-hidden">
-                  <div className="absolute top-0 left-0 w-full h-2 bg-green-400"></div>
-                  <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center mx-auto mb-6 text-green-500 shadow-md">
-                    <GraduationCap size={48} />
-                  </div>
-                  <h2 className="text-3xl font-extrabold text-gray-800 mb-2">Quiz Complete!</h2>
-                  <p className="text-gray-600 mb-8 text-lg">You scored <span className="text-green-600 font-bold text-2xl mx-1">{calculateScore()}</span> / {set.quiz.length}</p>
-                  <button 
+                <div className="mt-8 flex w-full items-center justify-between">
+                  <button
                     onClick={() => {
-                      setShowQuizResults(false);
-                      setQuizAnswers(new Array(set.quiz.length).fill(-1));
+                      setFlipped(false);
+                      setCardIndex(i => (i - 1 + set.flashcards.length) % set.flashcards.length);
                     }}
-                    className="px-8 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-green-200 flex items-center gap-2 mx-auto hover:scale-105"
+                    className="flex items-center gap-2 border border-[var(--rule)] px-4 py-2 font-mono text-2xs uppercase tracking-[0.1em] text-[var(--ink-2)] transition-colors hover:border-[var(--ink)] hover:text-[var(--ink)]"
                   >
-                    <RefreshCw size={20} /> Retry Quiz
+                    <ArrowLeft size={14} />
+                    Previous
+                  </button>
+                  <button
+                    onClick={() => {
+                      setFlipped(false);
+                      setCardIndex(i => (i + 1) % set.flashcards.length);
+                    }}
+                    className="flex items-center gap-2 border border-[var(--rule)] px-4 py-2 font-mono text-2xs uppercase tracking-[0.1em] text-[var(--ink-2)] transition-colors hover:border-[var(--ink)] hover:text-[var(--ink)]"
+                  >
+                    Next
+                    <ArrowRight size={14} />
                   </button>
                 </div>
-              )}
 
-              {set.quiz.map((q, qIdx) => (
-                <div key={q.id} className="bg-white p-8 md:p-10 rounded-[2rem] shadow-card border border-gray-100/50 hover:shadow-soft transition-shadow duration-300">
-                  <div className="flex gap-5 mb-6">
-                      <span className="w-8 h-8 rounded-lg bg-gray-900 text-white flex items-center justify-center flex-shrink-0 text-sm font-bold shadow-md">{qIdx + 1}</span>
-                      <h3 className="text-lg md:text-xl font-bold text-gray-800 leading-relaxed pt-0.5">
-                        {q.question}
-                      </h3>
-                  </div>
-                  
-                  <div className="space-y-3 pl-0 md:pl-14">
-                    {q.options.map((opt, oIdx) => {
-                      let btnClass = "w-full text-left p-5 rounded-xl border-2 transition-all font-medium relative flex items-center justify-between group ";
-                      if (showQuizResults) {
-                        if (oIdx === q.correctAnswerIndex) btnClass += "border-green-500 bg-green-50 text-green-800";
-                        else if (quizAnswers[qIdx] === oIdx) btnClass += "border-red-400 bg-red-50 text-red-800";
-                        else btnClass += "border-gray-100 text-gray-400 opacity-60";
-                      } else {
-                        if (quizAnswers[qIdx] === oIdx) btnClass += "border-gray-900 bg-gray-900 text-white shadow-lg";
-                        else btnClass += "border-gray-100 hover:border-primary hover:bg-primary/5 text-gray-600 hover:text-primary";
-                      }
+                <p className="mt-6 text-center text-xs text-[var(--ink-3)]">
+                  Grading and review scheduling arrive next.
+                </p>
+              </>
+            )}
+          </div>
+        )}
 
-                      return (
-                        <button
-                          key={oIdx}
-                          onClick={() => handleQuizSelect(qIdx, oIdx)}
-                          className={btnClass}
-                        >
-                            <span className="z-10">{opt}</span>
-                            {showQuizResults && oIdx === q.correctAnswerIndex && (
-                                <div className="bg-green-200 text-green-700 rounded-full p-1"><CheckCircle size={16} /></div>
-                            )}
-                        </button>
-                      );
-                    })}
+        {tab === 'quiz' && (
+          <div data-panel className="mx-auto max-w-2xl px-6 py-8 sm:px-10">
+            {set.quiz.length === 0 ? (
+              <p className="py-20 text-center text-[var(--ink-2)]">
+                This set has no quiz yet.
+              </p>
+            ) : (
+              <>
+                {graded && (
+                  <div
+                    className="mb-10 border border-[var(--rule)] bg-[var(--paper-2)] p-6"
+                    style={{ borderLeftWidth: 3, borderLeftColor: 'var(--green)' }}
+                  >
+                    <span className="label">Result</span>
+                    <p className="display mt-2 text-2xl">
+                      {score} of {set.quiz.length}
+                    </p>
+                    <button
+                      onClick={() => {
+                        setGraded(false);
+                        setAnswers(new Array(set.quiz.length).fill(-1));
+                      }}
+                      className="mt-5 bg-[var(--ink)] px-4 py-2 font-mono text-2xs uppercase tracking-[0.1em] text-[var(--paper)] transition-transform active:scale-[0.97]"
+                    >
+                      Try again
+                    </button>
                   </div>
-                  {showQuizResults && (
-                    <div className="mt-6 ml-0 md:ml-14 p-6 bg-blue-50/50 text-blue-900 rounded-2xl text-sm leading-relaxed border border-blue-100 flex gap-4">
-                        <Lightbulb className="flex-shrink-0 text-blue-500" size={20} />
-                        <div>
-                            <strong className="block mb-1 font-bold text-blue-600">Explanation</strong>
-                            {q.explanation}
+                )}
+
+                <ol className="space-y-10">
+                  {set.quiz.map((question, qi) => (
+                    <li key={question.id}>
+                      <div className="flex gap-4">
+                        {/* Numerals belong here: quiz order is real. */}
+                        <span className="numeral shrink-0 pt-0.5 text-sm text-[var(--ink-3)]">
+                          {String(qi + 1).padStart(2, '0')}
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <p className="font-semibold text-[var(--ink)]">{question.question}</p>
+
+                          <div className="mt-4 space-y-2">
+                            {question.options.map((option, oi) => {
+                              const picked = answers[qi] === oi;
+                              const correct = oi === question.correctAnswerIndex;
+
+                              let style = 'border-[var(--rule)] text-[var(--ink-2)]';
+                              let wash: string | undefined;
+
+                              if (graded) {
+                                if (correct) {
+                                  style = 'border-[var(--ink)] text-[var(--ink)]';
+                                  wash = 'var(--green-wash)';
+                                } else if (picked) {
+                                  style = 'border-[var(--ink)] text-[var(--ink)]';
+                                  wash = 'var(--pink-wash)';
+                                } else {
+                                  style = 'border-[var(--rule)] text-[var(--ink-3)]';
+                                }
+                              } else if (picked) {
+                                style = 'border-[var(--ink)] text-[var(--ink)]';
+                              }
+
+                              return (
+                                <button
+                                  key={oi}
+                                  disabled={graded}
+                                  onClick={() => {
+                                    if (graded) return;
+                                    const next = [...answers];
+                                    next[qi] = oi;
+                                    setAnswers(next);
+                                  }}
+                                  className={`flex w-full items-center gap-3 border px-4 py-3 text-left text-sm transition-colors duration-150 ${style} ${
+                                    graded ? '' : 'hover:border-[var(--ink)]'
+                                  }`}
+                                  style={{ background: wash }}
+                                >
+                                  <span className="numeral text-2xs text-[var(--ink-3)]">
+                                    {String.fromCharCode(65 + oi)}
+                                  </span>
+                                  <span className="flex-1">{option}</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+
+                          {graded && (
+                            <div className="mt-4 border-l-2 border-[var(--rule)] pl-4">
+                              <span className="label">Why</span>
+                              <p className="mt-1 text-sm text-[var(--ink-2)]">
+                                {question.explanation}
+                              </p>
+                            </div>
+                          )}
                         </div>
+                      </div>
+                    </li>
+                  ))}
+                </ol>
+
+                {!graded && (
+                  <div className="sticky bottom-6 mt-10 flex justify-center">
+                    <button
+                      onClick={() => {
+                        setGraded(true);
+                        onUpdateSet({
+                          ...set,
+                          quizAttempts: [
+                            ...set.quizAttempts,
+                            {
+                              id: `attempt-${Date.now()}`,
+                              takenAt: new Date().toISOString(),
+                              answers,
+                              score,
+                            },
+                          ],
+                        });
+                      }}
+                      disabled={answers.includes(-1)}
+                      className="bg-[var(--ink)] px-8 py-3 font-mono text-xs uppercase tracking-[0.1em] text-[var(--paper)] transition-transform active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-40 disabled:active:scale-100"
+                    >
+                      {answers.includes(-1)
+                        ? `${answers.filter(a => a === -1).length} left`
+                        : 'Check answers'}
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        )}
+
+        {tab === 'tutor' && (
+          <div data-panel className="mx-auto flex h-full max-w-2xl flex-col px-6 sm:px-10">
+            <div className="min-h-0 flex-1 overflow-y-auto py-8">
+              {chat.length === 0 ? (
+                <div className="border border-[var(--rule)] bg-[var(--paper-2)] p-8">
+                  <span className="label">Tutor</span>
+                  <p className="display mt-3 text-xl">I've read these notes.</p>
+                  <p className="mt-3 text-[var(--ink-2)]">
+                    Ask for a plainer explanation, a worked example, or a harder version of
+                    anything in this set.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-7">
+                  {chat.map((message, i) => (
+                    <div key={i}>
+                      <span className="label">
+                        {message.role === 'user' ? 'You' : 'Tutor'}
+                      </span>
+                      <div
+                        className={`mt-1.5 text-sm leading-[1.7] ${
+                          message.role === 'user'
+                            ? 'border-l-2 border-[var(--ink)] pl-4 text-[var(--ink)]'
+                            : 'text-[var(--ink-2)]'
+                        }`}
+                      >
+                        <MarkdownView>{message.text}</MarkdownView>
+                      </div>
+                    </div>
+                  ))}
+
+                  {chatBusy && (
+                    <div>
+                      <span className="label">Tutor</span>
+                      <p className="mt-1.5 flex items-center gap-2 text-sm text-[var(--ink-3)]">
+                        <Loader2 size={13} className="animate-spin" />
+                        Thinking
+                      </p>
                     </div>
                   )}
                 </div>
-              ))}
-              
-              {!showQuizResults && (
-                <div className="sticky bottom-6 flex justify-center pt-4">
-                    <button
-                        onClick={() => setShowQuizResults(true)}
-                        disabled={quizAnswers.includes(-1)}
-                        className="px-12 py-4 bg-gray-900 hover:bg-black disabled:bg-gray-300 disabled:shadow-none text-white rounded-full font-bold text-lg shadow-xl shadow-gray-400/50 transition-all hover:scale-105 active:scale-95"
-                    >
-                        Submit Answers
-                    </button>
+              )}
+              <div ref={chatEnd} />
+            </div>
+
+            <div className="shrink-0 border-t border-[var(--rule)] py-4">
+              {chatError && (
+                <div className="mb-3">
+                  <Banner tone="error" onDismiss={() => setChatError(null)}>
+                    {chatError}
+                  </Banner>
                 </div>
               )}
-            </div>
-          )}
-
-          {activeTab === 'chat' && (
-            <div className="flex flex-col h-[calc(100vh-160px)] bg-white rounded-[2.5rem] shadow-soft border border-gray-100 overflow-hidden relative">
-              
-              {/* Messages Area */}
-              <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-6 bg-gray-50/30">
-                {chatHistory.length === 0 && (
-                  <div className="h-full flex flex-col items-center justify-center text-center p-8 animate-fade-in">
-                    <div className="w-20 h-20 bg-gradient-to-tr from-primary to-secondary rounded-[2rem] flex items-center justify-center mb-6 shadow-lg shadow-primary/20">
-                      <Sparkles size={32} className="text-white"/>
-                    </div>
-                    <h3 className="text-xl font-bold text-gray-800 mb-2">AI Study Tutor</h3>
-                    <p className="text-gray-500 max-w-xs">I've read your notes! Ask me to explain concepts, give examples, or create practice problems.</p>
-                  </div>
-                )}
-                
-                {chatHistory.map((msg, i) => (
-                  <div key={i} className={`flex w-full ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`flex max-w-[85%] md:max-w-[70%] ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'} gap-3 items-end`}>
-                        
-                        {/* Avatar */}
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-[10px] font-bold shadow-sm ${
-                            msg.role === 'user' ? 'bg-gray-900 text-white' : 'bg-white border border-gray-200 text-primary'
-                        }`}>
-                            {msg.role === 'user' ? 'YOU' : 'AI'}
-                        </div>
-
-                        {/* Bubble */}
-                        <div className={`p-5 rounded-2xl text-sm leading-relaxed shadow-sm ${
-                            msg.role === 'user' 
-                            ? 'bg-gray-900 text-white rounded-br-sm' 
-                            : 'bg-white border border-gray-100 text-gray-700 rounded-bl-sm'
-                        }`}>
-                            <ReactMarkdown>{msg.text}</ReactMarkdown>
-                        </div>
-                    </div>
-                  </div>
-                ))}
-                
-                {isChatLoading && (
-                  <div className="flex justify-start w-full">
-                     <div className="flex max-w-[80%] flex-row gap-3 items-end">
-                        <div className="w-8 h-8 rounded-full bg-white border border-gray-200 text-primary flex items-center justify-center flex-shrink-0 text-[10px] font-bold shadow-sm">AI</div>
-                        <div className="bg-white border border-gray-100 px-5 py-4 rounded-2xl rounded-bl-sm shadow-sm">
-                            <div className="flex gap-1.5">
-                                <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce"></div>
-                                <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                                <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                            </div>
-                        </div>
-                     </div>
-                  </div>
-                )}
-                <div ref={chatEndRef} />
-              </div>
-
-              {/* Input Area */}
-              <div className="p-4 md:p-6 bg-white border-t border-gray-100 flex gap-3 items-center z-10">
-                <div className="flex-1 bg-gray-50 rounded-2xl flex items-center border border-gray-100 focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all">
-                    <input
-                        type="text"
-                        value={chatInput}
-                        onChange={(e) => setChatInput(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-                        placeholder="Type your question..."
-                        className="flex-1 bg-transparent px-5 py-4 border-none focus:ring-0 text-gray-800 placeholder-gray-400 outline-none"
-                    />
-                </div>
-                <button 
-                  onClick={handleSendMessage}
-                  disabled={!chatInput.trim() || isChatLoading}
-                  className="p-4 bg-primary text-white rounded-2xl hover:bg-primary-dark disabled:bg-gray-100 disabled:text-gray-300 disabled:cursor-not-allowed transition-all shadow-md shadow-primary/20 hover:scale-105 active:scale-95"
+              <div className="flex gap-2">
+                <input
+                  value={draftMessage}
+                  onChange={e => setDraftMessage(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && send()}
+                  placeholder="Ask about these notes"
+                  aria-label="Ask the tutor about these notes"
+                  className="h-11 flex-1 border border-[var(--rule)] bg-[var(--paper-2)] px-4 text-sm text-[var(--ink)] placeholder:text-[var(--ink-3)] focus:border-[var(--ink)] focus:outline-none"
+                />
+                <button
+                  onClick={send}
+                  disabled={!draftMessage.trim() || chatBusy}
+                  aria-label="Send"
+                  className="flex h-11 w-11 items-center justify-center bg-[var(--ink)] text-[var(--paper)] transition-transform active:scale-[0.97] disabled:opacity-40 disabled:active:scale-100"
                 >
-                  <Send size={20} className={chatInput.trim() ? "ml-0.5" : ""} />
+                  <Send size={16} />
                 </button>
               </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );
-};
-
-export default StudySession;
+}

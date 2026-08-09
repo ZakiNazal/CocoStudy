@@ -1,26 +1,28 @@
 @import "tailwindcss";
 
 /* ===================================================================
-   MARKED UP — design tokens
-   Ink is data. Pink = learning, yellow = reviewing, green = mastered.
+   MARKED UP
+   Ink is data. A term never seen is bare graphite; one being learned is
+   struck in pink; one in review is yellow; one mastered is green.
    =================================================================== */
 
 @theme {
-  --font-display: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
-  --font-body: "Source Serif 4", ui-serif, Georgia, serif;
-  --font-mono: "Martian Mono", ui-monospace, SFMono-Regular, monospace;
+  --font-display: "Bricolage Grotesque Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "Source Serif 4 Variable", ui-serif, Georgia, serif;
+  --font-mono: "Martian Mono Variable", ui-monospace, SFMono-Regular, monospace;
 
-  --color-paper: #EEEDE8;
-  --color-paper-2: #F7F6F2;
-  --color-paper-3: #E3E1DA;
-  --color-ink: #16151A;
-  --color-ink-2: #56545C;
-  --color-ink-3: #8B8A85;
-  --color-pink: #FF5FA2;
-  --color-yellow: #F5E663;
-  --color-green: #9BEE5C;
-  --color-cyan: #43D9E8;
-  --color-red: #E5484D;
+  --color-paper: var(--paper);
+  --color-paper-2: var(--paper-2);
+  --color-paper-3: var(--paper-3);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-rule: var(--rule);
+  --color-pink: var(--pink);
+  --color-yellow: var(--yellow);
+  --color-green: var(--green);
+  --color-cyan: var(--cyan);
+  --color-red: var(--red);
 
   --text-2xs: 0.6875rem;
   --text-xs: 0.8125rem;
@@ -31,8 +33,12 @@
   --text-2xl: 2.25rem;
   --text-3xl: 3.25rem;
   --text-4xl: 4.5rem;
+
+  --radius-sheet: 4px;
 }
 
+/* Light is the default and is fully defined here. Dark redefines only
+   what changes, so no colour has its single definition inside a query. */
 :root {
   --paper: #EEEDE8;
   --paper-2: #F7F6F2;
@@ -40,25 +46,61 @@
   --ink: #16151A;
   --ink-2: #56545C;
   --ink-3: #8B8A85;
+  --rule: #D5D3CB;
   --pink: #FF5FA2;
   --yellow: #F5E663;
   --green: #9BEE5C;
   --cyan: #43D9E8;
-  --red: #E5484D;
+  --red: #C2321F;
+
+  /* Highlighter fills sit behind ink, so they run lighter than the pure
+     marker colour to keep 4.5:1 against --ink on top. */
+  --pink-wash: #FFC9E0;
+  --yellow-wash: #FBF3AE;
+  --green-wash: #D3F7B4;
+  --cyan-wash: #B6EFF5;
 }
 
-[data-theme="dark"] {
+:root:not([data-theme="light"]) {
+  @media (prefers-color-scheme: dark) {
+    --paper: #0F0E12;
+    --paper-2: #17161C;
+    --paper-3: #211F28;
+    --ink: #EDECE7;
+    --ink-2: #A9A7B0;
+    --ink-3: #75737E;
+    --rule: #2E2C38;
+    --pink: #FF7FB6;
+    --yellow: #F8EE86;
+    --green: #B2F27C;
+    --cyan: #6FE4F0;
+    --red: #FF7A6B;
+
+    --pink-wash: #5C2440;
+    --yellow-wash: #55501F;
+    --green-wash: #2F4A1E;
+    --cyan-wash: #16414A;
+  }
+}
+
+:root[data-theme="dark"] {
   --paper: #0F0E12;
-  --paper-2: #1A1920;
-  --paper-3: #24232C;
+  --paper-2: #17161C;
+  --paper-3: #211F28;
   --ink: #EDECE7;
   --ink-2: #A9A7B0;
-  --ink-3: #6E6C77;
+  --ink-3: #75737E;
+  --rule: #2E2C38;
   --pink: #FF7FB6;
   --yellow: #F8EE86;
   --green: #B2F27C;
   --cyan: #6FE4F0;
-  --red: #FF6369;
+  --red: #FF7A6B;
+
+  --pink-wash: #5C2440;
+  --yellow-wash: #55501F;
+  --green-wash: #2F4A1E;
+  --cyan-wash: #16414A;
 }
 
 html,
@@ -71,77 +113,108 @@ body {
   background: var(--paper);
   color: var(--ink);
   font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
-/* ===================================================================
-   COMPAT BLOCK — keeps the pre-redesign components rendering until P1
-   replaces them. DELETE THIS ENTIRE BLOCK IN P1.
-   =================================================================== */
+/* --- Type roles ---------------------------------------------------- */
 
-@theme {
-  --color-primary: #4169E1;
-  --color-primary-dark: #2F4FDB;
-  --color-secondary: #93C5FD;
-  --color-accent: #EFF8FF;
-  --color-background: #F0F8FF;
-  --color-surface: #FFFFFF;
-  --color-dark: #2D3748;
-
-  --shadow-soft: 0 20px 40px -15px rgba(65, 105, 225, 0.12);
-  --shadow-glow: 0 0 20px rgba(65, 105, 225, 0.18);
-  --shadow-card: 0 4px 16px -4px rgba(0, 0, 0, 0.06);
-
-  --animate-fade-in: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-  --animate-slide-up: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-  --animate-scale-in: scaleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-  --animate-float: float 6s ease-in-out infinite;
+.display {
+  font-family: var(--font-display);
+  font-weight: 700;
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+  font-variation-settings: "wdth" 100;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0 }
-  to { opacity: 1 }
+/* Larger display sizes widen and tighten. */
+.display-xl {
+  font-variation-settings: "wdth" 112;
+  letter-spacing: -0.045em;
 }
 
-@keyframes slideUp {
-  from { transform: translateY(20px); opacity: 0 }
-  to { transform: none; opacity: 1 }
+.label {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-3);
 }
 
-@keyframes scaleIn {
-  from { transform: scale(0.9); opacity: 0 }
-  to { transform: none; opacity: 1 }
+.numeral {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
 }
 
-@keyframes float {
-  0%, 100% { transform: none }
-  50% { transform: translateY(-10px) }
+/* --- Structure ----------------------------------------------------- */
+
+.hairline {
+  border-color: var(--rule);
 }
 
-.perspective-1000 { perspective: 1000px }
-.transform-style-3d { transform-style: preserve-3d }
-.backface-hidden { backface-visibility: hidden }
-.rotate-y-180 { transform: rotateY(180deg) }
-
-.glass-panel {
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.5);
+/* Ruled paper. The rhythm is the body line-height so text sits on it. */
+.ruled {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent calc(1.6rem - 1px),
+    var(--rule) calc(1.6rem - 1px),
+    var(--rule) 1.6rem
+  );
 }
 
-.no-scrollbar::-webkit-scrollbar { display: none }
+/* --- Focus --------------------------------------------------------- */
 
-::-webkit-scrollbar { width: 6px; height: 6px }
-::-webkit-scrollbar-track { background: transparent }
-::-webkit-scrollbar-thumb { background: #E5E7EB; border-radius: 10px }
-
-input[type="checkbox"] {
-  accent-color: #4169E1;
-  width: 1.1em;
-  height: 1.1em;
-  margin-right: 0.5em;
-  vertical-align: middle;
+:where(a, button, input, textarea, select, [tabindex]):focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+  border-radius: 2px;
 }
 
-/* ========================= END COMPAT ============================== */
+/* --- Scrollbars ---------------------------------------------------- */
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--rule);
+  border: 3px solid var(--paper);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--ink-3);
+}
+
+::selection {
+  background: var(--yellow-wash);
+  color: var(--ink);
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* --- Motion -------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
