@@ -1,13 +1,34 @@
 export enum ContentType {
   TEXT = 'TEXT',
   AUDIO = 'AUDIO',
-  DOCUMENT = 'DOCUMENT'
+  DOCUMENT = 'DOCUMENT',
+}
+
+export type Grade = 1 | 2 | 3 | 4;
+
+export type MasteryState = 'new' | 'learning' | 'review' | 'lapsed';
+
+export interface SrsState {
+  /** ISO 8601 timestamp when this card is next due. */
+  due: string;
+  /** Days until the next review. 0 means intraday. */
+  interval: number;
+  /** Difficulty multiplier, clamped to [EASE_MIN, EASE_MAX]. */
+  ease: number;
+  reps: number;
+  lapses: number;
+  state: MasteryState;
+  lastGrade?: Grade;
+  lastReviewed?: string;
 }
 
 export interface Flashcard {
   id: string;
   front: string;
   back: string;
+  /** Term in the notes this card teaches. Drives the highlighter. */
+  term?: string;
+  srs: SrsState;
 }
 
 export interface QuizQuestion {
@@ -18,6 +39,13 @@ export interface QuizQuestion {
   explanation: string;
 }
 
+export interface QuizAttempt {
+  id: string;
+  takenAt: string;
+  answers: number[];
+  score: number;
+}
+
 export interface ChatMessage {
   role: 'user' | 'model';
   text: string;
@@ -26,14 +54,33 @@ export interface ChatMessage {
 export interface StudySet {
   id: string;
   title: string;
-  createdAt: Date;
-  summary: string; // Markdown content
+  createdAt: string;
+  updatedAt: string;
+  summary: string;
   flashcards: Flashcard[];
   quiz: QuizQuestion[];
-  originalContent: string | null; // Text content or Transcript
+  quizAttempts: QuizAttempt[];
+  originalContent: string | null;
   contentType: ContentType;
-  chatHistory?: ChatMessage[];
-  images?: string[]; // Base64 data URIs
+  chatHistory: ChatMessage[];
+  /** Keys into the blobs store, not base64 data. */
+  images: string[];
+  tags: string[];
+  archived: boolean;
 }
 
-export type ProcessingStatus = 'idle' | 'analyzing' | 'generating_flashcards' | 'generating_quiz' | 'complete' | 'error';
+export interface AppMeta {
+  schemaVersion: number;
+  theme: 'light' | 'dark' | 'system';
+  apiKey: string | null;
+  streak: { current: number; longest: number; lastStudiedDay: string | null };
+  focus: { totalMs: number; sessions: number; durationMin: number };
+}
+
+export type ProcessingStatus =
+  | 'idle'
+  | 'analyzing'
+  | 'generating_flashcards'
+  | 'generating_quiz'
+  | 'complete'
+  | 'error';
