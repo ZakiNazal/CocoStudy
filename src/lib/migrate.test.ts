@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { migrateLegacyData, LEGACY_KEY } from './migrate';
-import { getAllSets, getBlob, resetDb } from './db';
+import { countBlobs, getAllSets, getBlob, resetDb } from './db';
 
 const NOW = new Date('2026-08-10T12:00:00.000Z');
 
@@ -127,6 +127,25 @@ describe('migrateLegacyData', () => {
 
     expect(second).toEqual({ migrated: 0, skipped: true });
     expect(await getAllSets()).toHaveLength(1);
+  });
+
+  it('runs once when invoked concurrently, leaving no orphaned blobs', async () => {
+    // React StrictMode double-invokes effects in development, and a user can
+    // have two tabs open. Both callers must share a single migration run.
+    localStorage.setItem(LEGACY_KEY, JSON.stringify([legacySet({ images: [PNG] })]));
+
+    const [first, second] = await Promise.all([
+      migrateLegacyData(NOW),
+      migrateLegacyData(NOW),
+    ]);
+
+    // Both callers observe the same single run, so both report the same result.
+    expect(first).toEqual({ migrated: 1, skipped: false });
+    expect(second).toEqual(first);
+
+    // The work itself happened exactly once — no duplicate set, no orphaned blob.
+    expect(await getAllSets()).toHaveLength(1);
+    expect(await countBlobs()).toBe(1);
   });
 
   it('never deletes the legacy key', async () => {

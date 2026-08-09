@@ -89,6 +89,10 @@ export async function getBlob(key: string): Promise<Blob | undefined> {
   return (await db()).get('blobs', key);
 }
 
+export async function countBlobs(): Promise<number> {
+  return (await db()).count('blobs');
+}
+
 export async function getBlobUrl(key: string): Promise<string | undefined> {
   const blob = await getBlob(key);
   return blob ? URL.createObjectURL(blob) : undefined;

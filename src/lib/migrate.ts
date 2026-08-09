@@ -101,8 +101,23 @@ function migrateContentType(value: unknown): ContentType {
 /**
  * Copies pre-IndexedDB data forward. Idempotent, and never deletes the
  * legacy localStorage key — it stays as a fallback copy.
+ *
+ * Concurrent callers share a single run. Without this, React StrictMode's
+ * double-invoked effects (and a second open tab) both see an empty database
+ * and each write their own copy of the images, orphaning blobs.
  */
-export async function migrateLegacyData(now: Date): Promise<MigrationResult> {
+export function migrateLegacyData(now: Date): Promise<MigrationResult> {
+  if (!inFlight) {
+    inFlight = runMigration(now).finally(() => {
+      inFlight = null;
+    });
+  }
+  return inFlight;
+}
+
+let inFlight: Promise<MigrationResult> | null = null;
+
+async function runMigration(now: Date): Promise<MigrationResult> {
   let raw: string | null;
   try {
     raw = localStorage.getItem(LEGACY_KEY);

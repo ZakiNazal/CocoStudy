@@ -3,7 +3,7 @@ import { UploadCloud, FileText, Sparkles, Music, FileType, GraduationCap } from 
 import { ProcessingStatus } from '../types';
 
 interface UploadAreaProps {
-  onProcess: (content: string | File, type: 'text' | 'audio' | 'document') => void;
+  onProcess: (content: string | File) => void;
   status: ProcessingStatus;
 }
 
@@ -11,6 +11,7 @@ const UploadArea: React.FC<UploadAreaProps> = ({ onProcess, status }) => {
   const [activeTab, setActiveTab] = useState<'text' | 'file'>('file');
   const [textInput, setTextInput] = useState('');
   const [dragActive, setDragActive] = useState(false);
+  const [fileError, setFileError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -20,34 +21,31 @@ const UploadArea: React.FC<UploadAreaProps> = ({ onProcess, status }) => {
   };
 
   const processFile = (file: File) => {
+    setFileError(null);
     const type = file.type;
     const name = file.name.toLowerCase();
 
-    // Check for Audio/Video
-    if (type.startsWith('audio/') || type.startsWith('video/')) {
-      onProcess(file, 'audio');
-      return;
-    }
-    
-    // Check for PDF, Docx, PPTX, Images
-    if (
-      type === 'application/pdf' || 
+    const isSupported =
+      type.startsWith('audio/') ||
+      type.startsWith('video/') ||
+      type === 'application/pdf' ||
       name.endsWith('.pdf') ||
-      name.endsWith('.docx') || 
-      name.endsWith('.pptx') ||
-      name.endsWith('.doc') ||
-      name.endsWith('.ppt') 
-    ) {
-      onProcess(file, 'document');
+      name.endsWith('.docx') ||
+      name.endsWith('.pptx');
+
+    if (isSupported) {
+      onProcess(file);
       return;
     }
 
-    alert("Please upload a supported file: Audio, Video, PDF, Word (.docx), PowerPoint (.pptx).");
+    setFileError(
+      `CocoStudy can't read ${file.name}. Try a PDF, Word (.docx), PowerPoint (.pptx), or audio file.`
+    );
   };
 
   const handleTextSubmit = () => {
     if (textInput.trim()) {
-      onProcess(textInput, 'text');
+      onProcess(textInput);
     }
   };
 
@@ -179,6 +177,12 @@ const UploadArea: React.FC<UploadAreaProps> = ({ onProcess, status }) => {
                         <FileText size={14} className="text-blue-400"/> DOCX
                     </div>
                 </div>
+
+                {fileError && (
+                  <p role="alert" className="mt-6 text-sm font-semibold text-red-600">
+                    {fileError}
+                  </p>
+                )}
               </div>
             ) : (
               <div className="space-y-4">

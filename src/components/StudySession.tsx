@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { StudySet } from '../types';
 import { BookOpen, Layers, CheckCircle, Sparkles, ArrowLeft, RefreshCw, Send, GraduationCap, Edit3, Save, X, Bold, Italic, List, CheckSquare, Lightbulb, MoreHorizontal, Image as ImageIcon } from 'lucide-react';
-import { chatWithContext, generateStudyImage } from '../services/geminiService';
+import { chatWithContext, generateStudyImage } from '../services/ai';
+import { getBlobUrl, putBlob } from '../lib/db';
 
 interface StudySessionProps {
   set: StudySet;
@@ -22,6 +23,8 @@ const StudySession: React.FC<StudySessionProps> = ({ set, onBack, onUpdateSet })
 
   // Image Generation State
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+  const [imageError, setImageError] = useState<string | null>(null);
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
 
   // Quiz State
   const [quizAnswers, setQuizAnswers] = useState<number[]>(new Array(set.quiz.length).fill(-1));
@@ -72,23 +75,43 @@ const StudySession: React.FC<StudySessionProps> = ({ set, onBack, onUpdateSet })
   };
 
   // --- Image Logic ---
+  // Images persist as blob keys; resolve them to object URLs for rendering.
+  useEffect(() => {
+    let created: string[] = [];
+    let cancelled = false;
+
+    Promise.all(set.images.map(getBlobUrl)).then(urls => {
+      const resolved = urls.filter((u): u is string => Boolean(u));
+      if (cancelled) {
+        resolved.forEach(URL.revokeObjectURL);
+        return;
+      }
+      created = resolved;
+      setImageUrls(resolved);
+    });
+
+    return () => {
+      cancelled = true;
+      created.forEach(URL.revokeObjectURL);
+    };
+  }, [set.images]);
+
   const handleGenerateImage = async () => {
     if (isGeneratingImage) return;
     setIsGeneratingImage(true);
+    setImageError(null);
     try {
-        // Use the title for the prompt
-        const imageData = await generateStudyImage(set.title);
-        if (imageData) {
-            const currentImages = set.images || [];
-            onUpdateSet({ ...set, images: [...currentImages, imageData] });
-        } else {
-            alert("Could not generate image. Please try again.");
-        }
+      const blob = await generateStudyImage(set.title);
+      if (!blob) {
+        setImageError('Gemini did not return an image. Try again.');
+        return;
+      }
+      const key = await putBlob(blob);
+      onUpdateSet({ ...set, images: [...set.images, key] });
     } catch (e) {
-        console.error(e);
-        alert("Error generating visual.");
+      setImageError(e instanceof Error ? e.message : 'Could not generate a visual.');
     } finally {
-        setIsGeneratingImage(false);
+      setIsGeneratingImage(false);
     }
   };
 
@@ -136,12 +159,7 @@ const StudySession: React.FC<StudySessionProps> = ({ set, onBack, onUpdateSet })
     setIsChatLoading(true);
 
     try {
-      const historyForApi = newHistory.map(h => ({
-        role: h.role,
-        parts: [{ text: h.text }]
-      }));
-      
-      const response = await chatWithContext(userMsg, set.summary, historyForApi);
+      const response = await chatWithContext(userMsg, set.summary, newHistory);
       const assistantMsg = { role: 'model', text: response || "I couldn't generate a response." } as const;
       
       const finalHistory = [...newHistory, assistantMsg];
@@ -257,10 +275,16 @@ const StudySession: React.FC<StudySessionProps> = ({ set, onBack, onUpdateSet })
                     </div>
                   </div>
 
+                  {imageError && (
+                    <p role="alert" className="mb-6 text-sm font-semibold text-red-600">
+                      {imageError}
+                    </p>
+                  )}
+
                   {/* Generated Images Gallery */}
-                  {set.images && set.images.length > 0 && (
+                  {imageUrls.length > 0 && (
                       <div className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {set.images.map((img, idx) => (
+                          {imageUrls.map((img, idx) => (
                               <div key={idx} className="rounded-2xl overflow-hidden border border-gray-100 shadow-sm relative group">
                                   <img src={img} alt={`Visual visualization ${idx + 1}`} className="w-full h-auto object-cover hover:scale-105 transition-transform duration-500" />
                                   <div className="absolute bottom-2 right-2 bg-black/50 text-white text-[10px] px-2 py-1 rounded-full backdrop-blur-sm">AI Generated</div>
