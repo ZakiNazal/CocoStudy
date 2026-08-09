@@ -42,7 +42,7 @@ Upload almost anything, and CocoStudy will organize it.
 
 - **Frontend**: React 19, TypeScript
 - **Styling**: Tailwind CSS (Custom Design System with Glassmorphism)
-- **AI Core**: Google GenAI SDK (`gemini-2.5-flash`)
+- **AI Core**: Google GenAI SDK (`gemini-1.5-flash`)
 - **Document Processing**: `mammoth.js` (Docx), `jszip` (PPTX)
 - **Icons**: Lucide React
 - **Typography**: Plus Jakarta Sans

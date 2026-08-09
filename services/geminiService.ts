@@ -9,8 +9,8 @@ const getAi = async () => {
   return aiInstance;
 };
 
-const MODEL_NAME = "gemini-2.5-flash";
-const IMAGE_MODEL_NAME = "gemini-2.5-flash-image";
+const MODEL_NAME = "gemini-1.5-flash";
+const IMAGE_MODEL_NAME = "gemini-1.5-flash";
 
 export const generateSummary = async (
   input: string | { data: string; mimeType: string }
