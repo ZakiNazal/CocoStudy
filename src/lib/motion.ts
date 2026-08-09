@@ -53,4 +53,17 @@ export function prefersReducedMotion(): boolean {
   );
 }
 
+/**
+ * Whether an entrance animation should actually play.
+ *
+ * False in a background tab, where requestAnimationFrame is throttled hard
+ * enough that a tween can stall part-way and leave content stuck in its
+ * start state. Every animation guarded by this must have a resting state
+ * that is already correct, so skipping it renders the finished result.
+ */
+export function shouldAnimate(): boolean {
+  if (typeof document === 'undefined') return false;
+  return !prefersReducedMotion() && document.visibilityState === 'visible';
+}
+
 export { gsap, ScrollTrigger, Flip, Observer };

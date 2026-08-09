@@ -7,8 +7,17 @@ import Banner from './components/ui/Banner';
 import { useStudySets } from './store/useStudySets';
 
 export default function App() {
-  const { sets, status, error, createFromFile, createFromText, updateSet, clearError } =
-    useStudySets();
+  const {
+    sets,
+    status,
+    error,
+    createFromFile,
+    createFromText,
+    gradeCard,
+    loadDemoSet,
+    updateSet,
+    clearError,
+  } = useStudySets();
   const [activeSetId, setActiveSetId] = useState<string | null>(null);
   const [navOpen, setNavOpen] = useState(false);
 
@@ -74,9 +83,15 @@ export default function App() {
               set={activeSet}
               onBack={() => setActiveSetId(null)}
               onUpdateSet={updateSet}
+              onGradeCard={gradeCard}
             />
           ) : (
-            <Intake onProcess={handleProcess} status={status} />
+            <Intake
+              onProcess={handleProcess}
+              onLoadDemo={async () => setActiveSetId((await loadDemoSet()).id)}
+              hasSets={sets.length > 0}
+              status={status}
+            />
           )}
         </div>
       </main>

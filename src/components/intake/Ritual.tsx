@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import { useGSAP } from '@gsap/react';
-import { gsap, DUR, EASE, STAGGER, prefersReducedMotion } from '../../lib/motion';
+import { gsap, DUR, EASE, STAGGER, shouldAnimate } from '../../lib/motion';
 import type { ProcessingStatus } from '../../types';
 
 const RULE_COUNT = 9;
@@ -37,12 +37,12 @@ export default function Ritual({ status }: RitualProps) {
 
   useGSAP(
     () => {
-      if (prefersReducedMotion()) {
-        gsap.set('[data-sheet], [data-rule], [data-mark], [data-numeral]', {
-          opacity: 1,
-          scaleX: 1,
-          scaleY: 1,
-        });
+      // Without motion, show the state this beat has reached rather than an
+      // empty page: marks land from beat two, numerals from beat three.
+      if (!shouldAnimate()) {
+        gsap.set('[data-sheet], [data-rule]', { opacity: 1, scaleX: 1, scaleY: 1 });
+        gsap.set('[data-mark]', { scaleX: step >= 2 ? 1 : 0 });
+        gsap.set('[data-numeral]', { opacity: step >= 3 ? 1 : 0 });
         return;
       }
 

@@ -14,14 +14,15 @@ import {
   Send,
   X,
 } from 'lucide-react';
-import { gsap, DUR, EASE, prefersReducedMotion } from '../lib/motion';
+import { gsap, DUR, EASE, shouldAnimate } from '../lib/motion';
 import { setMastery } from '../lib/mastery';
 import { getBlobUrl, putBlob } from '../lib/db';
 import { chatWithContext, generateStudyImage } from '../services/ai';
 import MarkdownView from './notes/MarkdownView';
+import ReviewSession from './cards/ReviewSession';
 import MasteryBar from './ui/MasteryBar';
 import Banner from './ui/Banner';
-import type { ChatMessage, StudySet } from '../types';
+import type { ChatMessage, Grade, StudySet } from '../types';
 
 type Tab = 'notes' | 'cards' | 'quiz' | 'tutor';
 
@@ -36,10 +37,17 @@ interface StudySessionProps {
   set: StudySet;
   onBack: () => void;
   onUpdateSet: (set: StudySet) => void;
+  onGradeCard: (setId: string, cardId: string, grade: Grade) => void;
 }
 
-export default function StudySession({ set, onBack, onUpdateSet }: StudySessionProps) {
+export default function StudySession({
+  set,
+  onBack,
+  onUpdateSet,
+  onGradeCard,
+}: StudySessionProps) {
   const [tab, setTab] = useState<Tab>('notes');
+  const [browsing, setBrowsing] = useState(false);
 
   // Notes editing
   const [editing, setEditing] = useState(false);
@@ -77,6 +85,7 @@ export default function StudySession({ set, onBack, onUpdateSet }: StudySessionP
     setCardIndex(0);
     setFlipped(false);
     setEditing(false);
+    setBrowsing(false);
   }, [set.id, set.summary, set.chatHistory, set.quiz.length]);
 
   // Blob keys resolve to object URLs for rendering.
@@ -106,7 +115,7 @@ export default function StudySession({ set, onBack, onUpdateSet }: StudySessionP
 
   useGSAP(
     () => {
-      if (prefersReducedMotion()) return;
+      if (!shouldAnimate()) return;
       gsap.from('[data-panel]', { opacity: 0, y: 10, duration: DUR.base, ease: EASE.out });
     },
     { scope: body, dependencies: [tab] },
@@ -345,7 +354,18 @@ export default function StudySession({ set, onBack, onUpdateSet }: StudySessionP
           </div>
         )}
 
-        {tab === 'cards' && (
+        {tab === 'cards' && !browsing && (
+          <div data-panel>
+            <ReviewSession
+              key={set.id}
+              cards={set.flashcards}
+              onGrade={(cardId, grade) => onGradeCard(set.id, cardId, grade)}
+              onBrowse={() => setBrowsing(true)}
+            />
+          </div>
+        )}
+
+        {tab === 'cards' && browsing && (
           <div data-panel className="mx-auto flex max-w-2xl flex-col items-center px-6 py-10">
             {!card ? (
               <p className="py-20 text-[var(--ink-2)]">
@@ -428,9 +448,12 @@ export default function StudySession({ set, onBack, onUpdateSet }: StudySessionP
                   </button>
                 </div>
 
-                <p className="mt-6 text-center text-xs text-[var(--ink-3)]">
-                  Grading and review scheduling arrive next.
-                </p>
+                <button
+                  onClick={() => setBrowsing(false)}
+                  className="mt-6 font-mono text-2xs uppercase tracking-[0.1em] text-[var(--ink-3)] hover:text-[var(--ink)]"
+                >
+                  Back to review
+                </button>
               </>
             )}
           </div>

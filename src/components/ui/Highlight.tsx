@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import { useGSAP } from '@gsap/react';
-import { gsap, DUR, EASE, prefersReducedMotion } from '../../lib/motion';
+import { gsap, DUR, EASE, shouldAnimate } from '../../lib/motion';
 import type { Ink } from '../../lib/mastery';
 
 const WASH: Record<Ink, string> = {
@@ -39,12 +39,7 @@ export default function Highlight({
 
   useGSAP(
     () => {
-      if (!stroke.current || ink === 'none') return;
-
-      if (prefersReducedMotion()) {
-        gsap.set(stroke.current, { scaleX: coverage });
-        return;
-      }
+      if (!stroke.current || ink === 'none' || !shouldAnimate()) return;
 
       gsap.fromTo(
         stroke.current,
@@ -66,7 +61,9 @@ export default function Highlight({
           // Sit low and slightly proud of the text, the way a marker lands.
           top: '0.18em',
           bottom: '-0.06em',
-          transform: 'scaleX(0)',
+          // Resting state is the finished stroke. GSAP animates from zero
+          // when it can; if it never runs, the mark is still correct.
+          transform: `scaleX(${coverage})`,
           zIndex: 0,
         }}
       />

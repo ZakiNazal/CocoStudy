@@ -1,5 +1,14 @@
 import { describe, it, expect } from 'vitest';
-import { newCardState, schedule, isDue, EASE_MIN, EASE_MAX, INTERVAL_MAX } from './srs';
+import {
+  newCardState,
+  schedule,
+  isDue,
+  formatInterval,
+  gradePreview,
+  EASE_MIN,
+  EASE_MAX,
+  INTERVAL_MAX,
+} from './srs';
 import type { SrsState } from '../types';
 
 const NOW = new Date('2026-08-10T12:00:00.000Z');
@@ -112,6 +121,43 @@ describe('schedule — invariants', () => {
     const snapshot = JSON.parse(JSON.stringify(input));
     schedule(input, 1, NOW);
     expect(input).toEqual(snapshot);
+  });
+});
+
+describe('formatInterval', () => {
+  it('shows an intraday card as minutes, not zero days', () => {
+    expect(formatInterval(0)).toBe('10m');
+  });
+
+  it('shows days below a month', () => {
+    expect(formatInterval(1)).toBe('1d');
+    expect(formatInterval(29)).toBe('29d');
+  });
+
+  it('switches to months at thirty days', () => {
+    expect(formatInterval(30)).toBe('1mo');
+    expect(formatInterval(90)).toBe('3mo');
+  });
+
+  it('switches to years at a full year', () => {
+    expect(formatInterval(365)).toBe('1.0y');
+  });
+});
+
+describe('gradePreview', () => {
+  it('tells the user what each grade would cost them', () => {
+    const preview = gradePreview(reviewCard({ interval: 10, ease: 2.5 }), NOW);
+    // Easy lands at 34 days, which reads as a month on a grade button.
+    expect(preview).toEqual({ 1: '10m', 2: '12d', 3: '25d', 4: '1mo' });
+  });
+
+  it('previews a new card without scheduling it', () => {
+    const card = newCardState(NOW);
+    const preview = gradePreview(card, NOW);
+    expect(preview[3]).toBe('1d');
+    expect(preview[4]).toBe('3d');
+    // The preview must not have mutated the card.
+    expect(card.reps).toBe(0);
   });
 });
 

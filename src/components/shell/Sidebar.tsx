@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { useGSAP } from '@gsap/react';
 import { Plus, Search, Settings } from 'lucide-react';
-import { gsap, DUR, EASE, STAGGER, prefersReducedMotion } from '../../lib/motion';
+import { gsap, DUR, EASE, STAGGER, shouldAnimate } from '../../lib/motion';
 import { setMastery } from '../../lib/mastery';
 import { isDue } from '../../lib/srs';
 import MasteryBar from '../ui/MasteryBar';
@@ -35,7 +35,7 @@ export default function Sidebar({
 
   useGSAP(
     () => {
-      if (prefersReducedMotion()) return;
+      if (!shouldAnimate()) return;
       gsap.from('[data-row]', {
         opacity: 0,
         x: -8,

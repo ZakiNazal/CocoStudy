@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { useGSAP } from '@gsap/react';
-import { FileText, Mic, Upload } from 'lucide-react';
-import { gsap, DUR, EASE, STAGGER, prefersReducedMotion } from '../../lib/motion';
+import { FileText, Mic, Sparkles, Upload } from 'lucide-react';
+import { gsap, DUR, EASE, STAGGER, shouldAnimate } from '../../lib/motion';
 import Highlight from '../ui/Highlight';
 import Banner from '../ui/Banner';
 import Ritual from './Ritual';
@@ -9,12 +9,14 @@ import type { ProcessingStatus } from '../../types';
 
 interface IntakeProps {
   onProcess: (content: string | File) => void;
+  onLoadDemo: () => void;
+  hasSets: boolean;
   status: ProcessingStatus;
 }
 
 const ACCEPT = 'audio/*,video/*,.pdf,.docx,.pptx';
 
-export default function Intake({ onProcess, status }: IntakeProps) {
+export default function Intake({ onProcess, onLoadDemo, hasSets, status }: IntakeProps) {
   const [mode, setMode] = useState<'file' | 'text'>('file');
   const [text, setText] = useState('');
   const [dragging, setDragging] = useState(false);
@@ -26,7 +28,7 @@ export default function Intake({ onProcess, status }: IntakeProps) {
 
   useGSAP(
     () => {
-      if (busy || prefersReducedMotion()) return;
+      if (busy || !shouldAnimate()) return;
       gsap.from('[data-reveal]', {
         opacity: 0,
         y: 14,
@@ -113,6 +115,24 @@ export default function Intake({ onProcess, status }: IntakeProps) {
             ))}
           </div>
         </header>
+
+        {!hasSets && (
+          <div
+            data-reveal
+            className="mt-4 flex flex-wrap items-center justify-between gap-3 border border-[var(--rule)] px-6 py-4"
+          >
+            <p className="text-sm text-[var(--ink-2)]">
+              Want to look around first? Load a worked example — no API key needed.
+            </p>
+            <button
+              onClick={onLoadDemo}
+              className="flex shrink-0 items-center gap-2 border border-[var(--ink)] px-4 py-2 font-mono text-2xs uppercase tracking-[0.1em] text-[var(--ink)] transition-[background-color,color,transform] duration-150 hover:bg-[var(--ink)] hover:text-[var(--paper)] active:scale-[0.97]"
+            >
+              <Sparkles size={13} />
+              Open the demo set
+            </button>
+          </div>
+        )}
 
         {/* Mode switch */}
         <div data-reveal className="mt-10 flex border-b border-[var(--rule)]">

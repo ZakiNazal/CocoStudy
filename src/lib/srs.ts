@@ -63,3 +63,21 @@ export function schedule(state: SrsState, grade: Grade, now: Date): SrsState {
 export function isDue(state: SrsState, now: Date): boolean {
   return new Date(state.due).getTime() <= now.getTime();
 }
+
+/** Short human interval for grade buttons: "10m", "3d", "2mo", "1.4y". */
+export function formatInterval(days: number): string {
+  if (days <= 0) return '10m';
+  if (days < 30) return `${days}d`;
+  if (days < 365) return `${Math.round(days / 30)}mo`;
+  return `${(days / 365).toFixed(1)}y`;
+}
+
+/** What each grade would do to this card, for showing on the buttons. */
+export function gradePreview(state: SrsState, now: Date): Record<Grade, string> {
+  return {
+    1: formatInterval(schedule(state, 1, now).interval),
+    2: formatInterval(schedule(state, 2, now).interval),
+    3: formatInterval(schedule(state, 3, now).interval),
+    4: formatInterval(schedule(state, 4, now).interval),
+  };
+}
