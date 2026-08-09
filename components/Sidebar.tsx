@@ -12,7 +12,7 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ savedSets, activeSetId, onSelectSet, onNewSet }) => {
   const [searchTerm, setSearchTerm] = useState('');
 
-  const filteredSets = savedSets.filter(set => 
+  const filteredSets = savedSets.filter(set =>
     set.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -24,7 +24,7 @@ const Sidebar: React.FC<SidebarProps> = ({ savedSets, activeSetId, onSelectSet, 
           <GraduationCap size={22} />
         </div>
         <div>
-          <h1 className="text-xl font-bold text-gray-800 tracking-tight">CocoStudyAI</h1>
+          <h1 className="text-xl font-bold text-gray-800 tracking-tight">CocoStudy</h1>
           <p className="text-[10px] font-semibold text-primary uppercase tracking-widest">AI Companion</p>
         </div>
       </div>
@@ -44,9 +44,9 @@ const Sidebar: React.FC<SidebarProps> = ({ savedSets, activeSetId, onSelectSet, 
       <div className="px-6 mt-4 mb-2">
         <div className="relative group">
           <Search className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-primary transition-colors" size={16} />
-          <input 
-            type="text" 
-            placeholder="Search notes..." 
+          <input
+            type="text"
+            placeholder="Search notes..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-100 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary/30 text-gray-700 placeholder-gray-400 transition-all outline-none shadow-sm"
@@ -57,7 +57,7 @@ const Sidebar: React.FC<SidebarProps> = ({ savedSets, activeSetId, onSelectSet, 
       {/* Navigation List */}
       <div className="flex-1 overflow-y-auto px-4 py-2 space-y-1 custom-scrollbar">
         <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 px-4 mt-2">Your Library</h3>
-        
+
         {savedSets.length === 0 ? (
           <div className="text-center py-10 px-4">
             <div className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-3">
@@ -75,18 +75,16 @@ const Sidebar: React.FC<SidebarProps> = ({ savedSets, activeSetId, onSelectSet, 
             <button
               key={set.id}
               onClick={() => onSelectSet(set.id)}
-              className={`w-full text-left p-3.5 rounded-2xl transition-all duration-200 flex items-center gap-3 group relative overflow-hidden ${
-                activeSetId === set.id
+              className={`w-full text-left p-3.5 rounded-2xl transition-all duration-200 flex items-center gap-3 group relative overflow-hidden ${activeSetId === set.id
                   ? 'bg-white shadow-soft text-primary-dark ring-1 ring-primary/10'
                   : 'hover:bg-white/50 text-gray-600 hover:text-gray-900'
-              }`}
+                }`}
             >
-              <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors ${
-                 activeSetId === set.id ? 'bg-primary/10 text-primary' : 'bg-gray-100 text-gray-400 group-hover:bg-white group-hover:text-primary'
-              }`}>
+              <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors ${activeSetId === set.id ? 'bg-primary/10 text-primary' : 'bg-gray-100 text-gray-400 group-hover:bg-white group-hover:text-primary'
+                }`}>
                 {activeSetId === set.id ? <LayoutGrid size={16} /> : <Book size={16} />}
               </div>
-              
+
               <div className="overflow-hidden min-w-0 flex-1">
                 <p className={`font-semibold truncate text-sm ${activeSetId === set.id ? 'text-gray-900' : ''}`}>
                   {set.title || 'Untitled Note'}

@@ -1,13 +1,12 @@
-# CocoStudy AI 🥥✨
+# CocoStudy 🥥✨
 
 > **Your Intelligent Study Companion**  
 > *Turn chaos into clarity. Transform lectures and notes into mastery.*
 
-CocoStudy AI is a beautiful, AI-powered web application designed to revolutionize how students learn. Inspired by the "Coconote" aesthetic, it combines a soft, focused UI with the powerful capabilities of Google's **Gemini 2.5** model to automatically generate structured study guides, active recall flashcards, and gamified quizzes from your raw materials.
+CocoStudy is a beautiful, AI-powered web application designed to revolutionize how students learn. Inspired by the "Coconote" aesthetic, it combines a soft, focused UI with the powerful capabilities of AI to automatically generate structured study guides, active recall flashcards, and gamified quizzes from your raw materials.
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![React](https://img.shields.io/badge/Built%20with-React%2019-61DAFB.svg)
-![Gemini](https://img.shields.io/badge/Powered%20by-Gemini%202.5-8E75B2.svg)
 
 ---
 
@@ -42,7 +41,7 @@ Upload almost anything, and CocoStudy will organize it.
 
 - **Frontend**: React 19, TypeScript
 - **Styling**: Tailwind CSS (Custom Design System with Glassmorphism)
-- **AI Core**: Google GenAI SDK (`gemini-1.5-flash`)
+- **AI Core**: AI SDK
 - **Document Processing**: `mammoth.js` (Docx), `jszip` (PPTX)
 - **Icons**: Lucide React
 - **Typography**: Plus Jakarta Sans
@@ -72,7 +71,7 @@ Upload almost anything, and CocoStudy will organize it.
 3. **Set up Environment Variables**
    Create a `.env` file in the root directory:
    ```env
-   API_KEY=your_google_gemini_api_key_here
+   API_KEY=your_api_key_here
    ```
 
 4. **Run the Application**
@@ -84,7 +83,7 @@ Upload almost anything, and CocoStudy will organize it.
 
 ## 🎨 Design Philosophy
 
-CocoStudy AI follows a **"Soft & Focused"** design language:
+CocoStudy follows a **"Soft & Focused"** design language:
 - **Palette**: Dreamy pastels (Royal Blue `#4169E1`, Cream `#F0F8FF`) combined with high-contrast dark text for readability.
 
 ### Study Notes Format

@@ -1,5 +1,5 @@
 {
-  "name": "CocoStudy AI",
+  "name": "CocoStudy",
   "description": "An intelligent study companion that transforms your audio lectures and text notes into structured summaries, flashcards, and quizzes using Gemini 2.5.",
   "requestFramePermissions": [
     "microphone"
