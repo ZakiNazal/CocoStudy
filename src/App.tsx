@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { HashRouter } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import UploadArea from './components/UploadArea';
 import StudySession from './components/StudySession';
 import { generateSummary, generateFlashcards, generateQuiz } from './services/geminiService';
 import { StudySet, ProcessingStatus, ContentType } from './types';
-import { Menu, GraduationCap } from 'lucide-react';
+import { Menu } from 'lucide-react';
 // @ts-ignore
 import mammoth from 'mammoth';
 // @ts-ignore
@@ -185,7 +184,6 @@ const App: React.FC = () => {
   };
   
   return (
-    <HashRouter>
       <div className="flex h-screen w-full bg-background font-sans overflow-hidden">
         
         {/* Mobile Sidebar Overlay */}
@@ -234,7 +232,6 @@ const App: React.FC = () => {
           )}
         </main>
       </div>
-    </HashRouter>
   );
 };
 

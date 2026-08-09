@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { StudySet } from '../types';
-import { BookOpen, Layers, CheckCircle, Sparkles, ArrowLeft, RefreshCw, Send, GraduationCap, Edit3, Save, X, Bold, Italic, List, CheckSquare, Lightbulb, MoreHorizontal, Image as ImageIcon, Plus } from 'lucide-react';
+import { BookOpen, Layers, CheckCircle, Sparkles, ArrowLeft, RefreshCw, Send, GraduationCap, Edit3, Save, X, Bold, Italic, List, CheckSquare, Lightbulb, MoreHorizontal, Image as ImageIcon } from 'lucide-react';
 import { chatWithContext, generateStudyImage } from '../services/geminiService';
 
 interface StudySessionProps {

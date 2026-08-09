@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Book, Settings, GraduationCap, Search, ChevronRight, LayoutGrid } from 'lucide-react';
+import { Plus, Book, Settings, GraduationCap, Search, LayoutGrid } from 'lucide-react';
 import { StudySet } from '../types';
 
 interface SidebarProps {

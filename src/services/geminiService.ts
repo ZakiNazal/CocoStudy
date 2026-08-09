@@ -1,10 +1,13 @@
 import { Flashcard, QuizQuestion } from "../types";
 
-let aiInstance: any | null = null;
-const getAi = async () => {
+import { GoogleGenAI } from "@google/genai";
+
+let aiInstance: GoogleGenAI | null = null;
+const getAi = () => {
   if (!aiInstance) {
-    const mod = await eval("import('@google/genai')");
-    aiInstance = new mod.GoogleGenAI({ apiKey: process.env.API_KEY });
+    aiInstance = new GoogleGenAI({
+      apiKey: import.meta.env.VITE_GEMINI_API_KEY ?? "",
+    });
   }
   return aiInstance;
 };
@@ -66,7 +69,7 @@ The final guide should read like a concise, polished chapter summary tailored fo
       `,
     });
 
-    const ai = await getAi();
+    const ai = getAi();
     const response = await ai.models.generateContent({
       model: MODEL_NAME,
       contents: { parts },
@@ -83,7 +86,7 @@ export const generateFlashcards = async (
   summary: string
 ): Promise<Flashcard[]> => {
   try {
-    const ai = await getAi();
+    const ai = getAi();
     const response = await ai.models.generateContent({
       model: MODEL_NAME,
       contents: `
@@ -129,7 +132,7 @@ export const generateQuiz = async (
   summary: string
 ): Promise<QuizQuestion[]> => {
   try {
-    const ai = await getAi();
+    const ai = getAi();
     const response = await ai.models.generateContent({
       model: MODEL_NAME,
       contents: `
@@ -184,7 +187,7 @@ export const chatWithContext = async (
   context: string,
   history: { role: "user" | "model"; parts: { text: string }[] }[]
 ) => {
-  const ai = await getAi();
+  const ai = getAi();
   const chat = ai.chats.create({
     model: MODEL_NAME,
     config: {
@@ -211,7 +214,7 @@ export const generateStudyImage = async (
   topic: string
 ): Promise<string | null> => {
   try {
-    const ai = await getAi();
+    const ai = getAi();
     const response = await ai.models.generateContent({
       model: IMAGE_MODEL_NAME,
       contents: {
