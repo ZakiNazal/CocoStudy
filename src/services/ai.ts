@@ -1,6 +1,7 @@
 import { GoogleGenAI } from '@google/genai';
 import { newCardState } from '../lib/srs';
 import { getMeta } from '../lib/db';
+import { describeAiError, type AiErrorKind } from '../lib/apierror';
 import type { ExtractedInput } from '../lib/extract';
 import type { ChatMessage, Flashcard, QuizQuestion } from '../types';
 import {
@@ -13,6 +14,13 @@ import {
 
 const MODEL = 'gemini-3.5-flash';
 
+/**
+ * Image generation needs a dedicated image model. The text model rejects
+ * `imageConfig` outright — it answers 400 "Aspect ratio is not enabled for
+ * this model", which is what pointing Visualise at MODEL used to produce.
+ */
+const IMAGE_MODEL = 'gemini-3.1-flash-image';
+
 export class MissingApiKeyError extends Error {
   constructor() {
     super('Add your Gemini API key in Settings to generate study sets.');
@@ -20,7 +28,7 @@ export class MissingApiKeyError extends Error {
   }
 }
 
-export type AiErrorKind = 'invalid-key' | 'rate-limit' | 'network' | 'unknown';
+export type { AiErrorKind };
 
 export class AiError extends Error {
   constructor(
@@ -57,29 +65,16 @@ async function ai(): Promise<GoogleGenAI> {
 }
 
 function toAiError(e: unknown): AiError {
-  const message = e instanceof Error ? e.message : String(e);
-  const lower = message.toLowerCase();
+  const raw = e instanceof Error ? e.message : String(e);
+  const { kind, message } = describeAiError(raw);
 
-  if (
-    lower.includes('api key') ||
-    lower.includes('permission') ||
-    lower.includes('401') ||
-    lower.includes('403')
-  ) {
+  // A rejected key must not stay cached, or every later call reuses it.
+  if (kind === 'invalid-key') {
     client = null;
     cachedKey = null;
-    return new AiError('invalid-key', 'That Gemini API key was rejected. Check it in Settings.');
   }
-  if (lower.includes('429') || lower.includes('quota') || lower.includes('rate')) {
-    return new AiError(
-      'rate-limit',
-      'Gemini is rate-limiting this key. Wait a minute and try again.',
-    );
-  }
-  if (lower.includes('fetch') || lower.includes('network') || lower.includes('offline')) {
-    return new AiError('network', 'Could not reach Gemini. Check your connection.');
-  }
-  return new AiError('unknown', message);
+
+  return new AiError(kind, message);
 }
 
 /** Rethrows our own error types untouched, wraps anything else. */
@@ -205,7 +200,7 @@ export async function chatWithContext(
 export async function generateStudyImage(topic: string): Promise<Blob | null> {
   try {
     const response = await (await ai()).models.generateContent({
-      model: MODEL,
+      model: IMAGE_MODEL,
       contents: { parts: [{ text: imagePrompt(topic) }] },
       config: { imageConfig: { aspectRatio: '16:9' } },
     });
