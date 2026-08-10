@@ -4,7 +4,9 @@ import Sidebar from './components/shell/Sidebar';
 import Intake from './components/intake/Intake';
 import StudySession from './components/StudySession';
 import Banner from './components/ui/Banner';
+import Settings from './components/shell/Settings';
 import { useStudySets } from './store/useStudySets';
+import { useSettings } from './store/useSettings';
 
 export default function App() {
   const {
@@ -18,8 +20,10 @@ export default function App() {
     updateSet,
     clearError,
   } = useStudySets();
+  const { meta, update: updateSettings } = useSettings();
   const [activeSetId, setActiveSetId] = useState<string | null>(null);
   const [navOpen, setNavOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   const activeSet = sets.find(s => s.id === activeSetId) ?? null;
 
@@ -56,7 +60,10 @@ export default function App() {
             setActiveSetId(null);
             setNavOpen(false);
           }}
-          onOpenSettings={() => setNavOpen(false)}
+          onOpenSettings={() => {
+            setNavOpen(false);
+            setSettingsOpen(true);
+          }}
         />
       </div>
 
@@ -95,6 +102,14 @@ export default function App() {
           )}
         </div>
       </main>
+
+      <Settings
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        meta={meta}
+        onUpdate={updateSettings}
+        sets={sets}
+      />
     </div>
   );
 }
