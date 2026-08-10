@@ -11,7 +11,7 @@ import {
   imagePrompt,
 } from './prompts';
 
-const MODEL = 'gemini-2.5-flash';
+const MODEL = 'gemini-3.5-flash';
 
 export class MissingApiKeyError extends Error {
   constructor() {
@@ -93,9 +93,9 @@ export async function generateSummary(input: ExtractedInput): Promise<string> {
       input.kind === 'text'
         ? [{ text: input.text }, { text: SUMMARY_PROMPT }]
         : [
-            { inlineData: { data: input.data, mimeType: input.mimeType } },
-            { text: SUMMARY_PROMPT },
-          ];
+          { inlineData: { data: input.data, mimeType: input.mimeType } },
+          { text: SUMMARY_PROMPT },
+        ];
 
     const response = await (await ai()).models.generateContent({
       model: MODEL,
