@@ -1,6 +1,6 @@
-# CocoStudy 🥥✨
+<img width="850" height="550" alt="logo" src="https://github.com/user-attachments/assets/c3451f65-d1f5-402a-bf2b-bd839f6c425b" />
 
-<img width="1920" height="1080" alt="cocostudy" src="https://github.com/user-attachments/assets/5d7f3312-b4ae-4d17-90ce-e676b62bdd24" />
+# CocoStudy 🥥✨
 
 > **Your Intelligent Study Companion**  
 > *Turn chaos into clarity. Transform lectures and notes into mastery.*
@@ -11,6 +11,7 @@ CocoStudy is a beautiful, AI-powered web application designed to revolutionize h
 ![React](https://img.shields.io/badge/Built%20with-React%2019-61DAFB.svg)
 
 ---
+<img width="1920" height="1080" alt="cocostudy" src="https://github.com/user-attachments/assets/5d7f3312-b4ae-4d17-90ce-e676b62bdd24" />
 
 ## 🌟 Key Features
 
