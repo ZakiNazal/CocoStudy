@@ -307,5 +307,6 @@ export function buildDemoSet(now: Date = new Date()): StudySet {
     images: [],
     tags: ['learning science', 'demo'],
     archived: false,
+    folderId: null,
   };
 }

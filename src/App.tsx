@@ -7,6 +7,7 @@ import Banner from './components/ui/Banner';
 import Settings from './components/shell/Settings';
 import { useStudySets } from './store/useStudySets';
 import { useSettings } from './store/useSettings';
+import { addFolder, removeFolder, renameFolder } from './lib/folders';
 
 export default function App() {
   const {
@@ -18,6 +19,8 @@ export default function App() {
     gradeCard,
     loadDemoSet,
     updateSet,
+    moveSetToFolder,
+    unfileFolder,
     clearError,
   } = useStudySets();
   const { meta, update: updateSettings } = useSettings();
@@ -26,6 +29,13 @@ export default function App() {
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   const activeSet = sets.find(s => s.id === activeSetId) ?? null;
+  const folders = meta?.folders ?? [];
+
+  /** Deleting a shelf empties it onto Unfiled — the sets themselves survive. */
+  const handleDeleteFolder = async (id: string) => {
+    await unfileFolder(id);
+    await updateSettings({ folders: removeFolder(folders, id) });
+  };
 
   const handleProcess = async (content: string | File) => {
     const created =
@@ -51,6 +61,15 @@ export default function App() {
       >
         <Sidebar
           sets={sets}
+          folders={folders}
+          onCreateFolder={name =>
+            void updateSettings({ folders: addFolder(folders, name, new Date()).folders })
+          }
+          onRenameFolder={(id, name) =>
+            void updateSettings({ folders: renameFolder(folders, id, name) })
+          }
+          onDeleteFolder={id => void handleDeleteFolder(id)}
+          onMoveSet={(setId, folderId) => void moveSetToFolder(setId, folderId)}
           activeSetId={activeSetId}
           onSelectSet={id => {
             setActiveSetId(id);

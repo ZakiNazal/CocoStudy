@@ -160,6 +160,7 @@ async function runMigration(now: Date): Promise<MigrationResult> {
         images: await migrateImages(legacy.images),
         tags: [],
         archived: false,
+        folderId: null,
       });
     }
 

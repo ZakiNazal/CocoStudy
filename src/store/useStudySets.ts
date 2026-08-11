@@ -52,6 +52,7 @@ export function useStudySets() {
         images: [],
         tags: [],
         archived: false,
+        folderId: null,
       };
 
       await putSet(set);
@@ -84,6 +85,30 @@ export function useStudySets() {
     const next = { ...set, updatedAt: new Date().toISOString() };
     await putSet(next);
     setSets(current => current.map(s => (s.id === next.id ? next : s)));
+  }, []);
+
+  /**
+   * Files a set under a folder, or under Unfiled with `null`.
+   *
+   * Reads from IndexedDB for the same reason `gradeCard` does, and leaves
+   * `updatedAt` alone: shelving a set is not studying it, and the library is
+   * sorted by when you last worked on something.
+   */
+  const moveSetToFolder = useCallback(async (setId: string, folderId: string | null) => {
+    const current = await getSet(setId);
+    if (!current || current.folderId === folderId) return;
+
+    const next: StudySet = { ...current, folderId };
+    await putSet(next);
+    setSets(all => all.map(s => (s.id === setId ? next : s)));
+  }, []);
+
+  /** Empties a deleted folder back onto the Unfiled shelf. */
+  const unfileFolder = useCallback(async (folderId: string) => {
+    const stale = (await getAllSets()).filter(s => s.folderId === folderId);
+    const moved = stale.map(s => ({ ...s, folderId: null }));
+    await Promise.all(moved.map(putSet));
+    if (moved.length > 0) setSets(await getAllSets());
   }, []);
 
   const removeSet = useCallback(async (id: string) => {
@@ -140,6 +165,8 @@ export function useStudySets() {
     loadDemoSet,
     updateSet,
     removeSet,
+    moveSetToFolder,
+    unfileFolder,
     clearError,
   };
 }

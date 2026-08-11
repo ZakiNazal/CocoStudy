@@ -24,6 +24,10 @@ Upload almost anything, and CocoStudy will organize it.
 - **Auto-Summarization**: Generates beautiful Markdown-formatted notes with emojis, bold key terms, and structured hierarchies.
 - **Rich Text Editor**: comprehensive editor to tweak your notes, add checklists, or format text with a custom toolbar.
 
+### 🗂️ **Folders**
+- **Shelve Your Sets**: Make folders in the library sidebar and file notes under them by drag-and-drop or the row menu.
+- **Nothing Gets Lost**: Deleting a folder returns its sets to *Unfiled* — it never takes the notes with it.
+
 ### ⚡ **Active Recall Tools**
 - **3D Flashcards**: Beautiful, animated flashcards generated automatically from your content to test your memory.
 - **Gamified Quizzes**: Multiple-choice quizzes with instant feedback and **AI-generated explanations** for every answer.

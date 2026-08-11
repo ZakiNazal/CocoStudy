@@ -1,4 +1,5 @@
 import ReactMarkdown, { type Components } from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
@@ -25,10 +26,27 @@ const components: Components = {
   em: ({ children }) => <em className="italic text-[var(--ink)]">{children}</em>,
   ul: ({ children }) => <ul className="mt-4 space-y-2">{children}</ul>,
   ol: ({ children }) => <ol className="mt-4 space-y-2">{children}</ol>,
-  li: ({ children }) => (
-    <li className="relative pl-5 leading-[1.7] text-[var(--ink-2)] before:absolute before:left-0 before:top-[0.7em] before:h-px before:w-2.5 before:bg-[var(--ink-3)]">
-      {children}
-    </li>
+  // A task item carries its own checkbox, so it drops the dash the other
+  // bullets wear. `task-list-item` is the class remark-gfm puts on them.
+  li: ({ children, className }) =>
+    className?.includes('task-list-item') ? (
+      <li className="flex items-baseline gap-2 leading-[1.7] text-[var(--ink-2)]">{children}</li>
+    ) : (
+      <li className="relative pl-5 leading-[1.7] text-[var(--ink-2)] before:absolute before:left-0 before:top-[0.7em] before:h-px before:w-2.5 before:bg-[var(--ink-3)]">
+        {children}
+      </li>
+    ),
+  input: ({ checked, type }) =>
+    type === 'checkbox' ? (
+      <input
+        type="checkbox"
+        checked={checked}
+        readOnly
+        className="mt-0.5 h-3 w-3 shrink-0 accent-[var(--ink)]"
+      />
+    ) : null,
+  del: ({ children }) => (
+    <del className="text-[var(--ink-3)] line-through">{children}</del>
   ),
   blockquote: ({ children }) => (
     <blockquote className="mt-5 border-l-2 border-[var(--ink)] pl-4 text-[var(--ink)]">
@@ -54,16 +72,22 @@ const components: Components = {
       {children}
     </a>
   ),
+  // A register or bit-layout table is wider than the column it sits in, so the
+  // cells hold their line and the table scrolls sideways inside its own box.
   table: ({ children }) => (
-    <div className="mt-5 overflow-x-auto">
-      <table className="w-full border-collapse text-sm">{children}</table>
+    <div className="mt-5 overflow-x-auto border border-[var(--rule)]">
+      <table className="min-w-full border-collapse text-sm">{children}</table>
     </div>
   ),
   th: ({ children }) => (
-    <th className="label border-b border-[var(--rule)] px-3 py-2 text-left">{children}</th>
+    <th className="label whitespace-nowrap border-b border-[var(--rule)] bg-[var(--paper-3)] px-3 py-2 text-left">
+      {children}
+    </th>
   ),
   td: ({ children }) => (
-    <td className="border-b border-[var(--rule)] px-3 py-2 text-[var(--ink-2)]">{children}</td>
+    <td className="whitespace-nowrap border-b border-[var(--rule)] px-3 py-2 text-[var(--ink-2)]">
+      {children}
+    </td>
   ),
 };
 
@@ -72,12 +96,16 @@ const components: Components = {
  * so it is rendered rather than left as `$2^n \ge \text{target}$` on the page.
  * `throwOnError: false` keeps a malformed expression from taking down the
  * whole guide — KaTeX prints the source in red and the rest still reads.
+ *
+ * `remarkGfm` is what makes a pipe table a table. Without it CommonMark treats
+ * the rows as ordinary text and joins them into one paragraph of pipes, which
+ * is how a bit-layout table ends up printed as a wall of `| 0 | 1 |`.
  */
 export default function MarkdownView({ children }: { children: string }) {
   return (
     <ReactMarkdown
       components={components}
-      remarkPlugins={[remarkMath]}
+      remarkPlugins={[remarkGfm, remarkMath]}
       rehypePlugins={[[rehypeKatex, { throwOnError: false, strict: false }]]}
     >
       {children}

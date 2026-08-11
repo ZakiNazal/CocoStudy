@@ -51,6 +51,13 @@ export interface ChatMessage {
   text: string;
 }
 
+/** A shelf in the library. Sets point at one; folders never nest. */
+export interface Folder {
+  id: string;
+  name: string;
+  createdAt: string;
+}
+
 export interface StudySet {
   id: string;
   title: string;
@@ -67,6 +74,8 @@ export interface StudySet {
   images: string[];
   tags: string[];
   archived: boolean;
+  /** The folder this set sits in. `null` is Unfiled. */
+  folderId: string | null;
 }
 
 export interface AppMeta {
@@ -75,6 +84,8 @@ export interface AppMeta {
   apiKey: string | null;
   streak: { current: number; longest: number; lastStudiedDay: string | null };
   focus: { totalMs: number; sessions: number; durationMin: number };
+  /** Library shelves, in the order they were made. */
+  folders: Folder[];
 }
 
 export type ProcessingStatus =

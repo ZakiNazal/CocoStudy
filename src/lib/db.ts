@@ -18,6 +18,7 @@ export const DEFAULT_META: AppMeta = {
   apiKey: null,
   streak: { current: 0, longest: 0, lastStudiedDay: null },
   focus: { totalMs: 0, sessions: 0, durationMin: 25 },
+  folders: [],
 };
 
 let dbPromise: Promise<IDBPDatabase<CocoDB>> | null = null;
@@ -71,6 +72,8 @@ export async function getMeta(): Promise<AppMeta> {
     schemaVersion: SCHEMA_VERSION,
     // An install from before the theme was reduced to two may hold 'system'.
     theme: normalizeTheme(stored?.theme),
+    // An install from before folders existed holds nothing here.
+    folders: Array.isArray(stored?.folders) ? stored.folders : [],
   };
 }
 

@@ -29,6 +29,7 @@ const makeSet = (over: Partial<StudySet> = {}): StudySet => ({
   images: [],
   tags: [],
   archived: false,
+  folderId: null,
   ...over,
 });
 
