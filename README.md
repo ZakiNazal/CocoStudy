@@ -52,48 +52,9 @@ Upload almost anything, and CocoStudy will organize it.
 
 ## 🚀 Getting Started
 
-### Prerequisites
-- Node.js installed on your machine.
-- A valid **Google Gemini API Key**.
+### Website
 
-### Installation
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/yourusername/cocostudy-ai.git
-   cd cocostudy-ai
-   ```
-
-2. **Install dependencies**
-   *(Note: This project uses a CDN-based architecture for the demo, but for local development you would typically run npm install)*
-   ```bash
-   npm install
-   ```
-
-3. **Set up Environment Variables**
-   Create a `.env` file in the root directory:
-   ```env
-   API_KEY=your_api_key_here
-   ```
-
-4. **Run the Application**
-   ```bash
-   npm start
-   ```
-
----
-
-## 🎨 Design Philosophy
-
-CocoStudy follows a **"Soft & Focused"** design language:
-- **Palette**: Dreamy pastels (Royal Blue `#4169E1`, Cream `#F0F8FF`) combined with high-contrast dark text for readability.
-
-### Study Notes Format
-
-- Study notes are generated as professional, concise Markdown guides tailored for learning: each guide includes a TL;DR, executive summary, clear learning objectives, structured outline, detailed notes with subsections, glossary, a short study plan, practice questions with answers, and key takeaways. This format is optimized for fast review and active study.
-- **Shapes**: "Squircles" (super-ellipses) and rounded corners (`rounded-[2.5rem]`) everywhere.
-- **Glassmorphism**: Translucent sidebars and floating navigation pills to create depth.
-- **Motion**: Subtle entry animations (`fade-in`, `slide-up`) make the app feel alive.
+https://cocostudy.vercel.app/
 
 ---
 
