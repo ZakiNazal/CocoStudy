@@ -71,7 +71,7 @@ export interface StudySet {
 
 export interface AppMeta {
   schemaVersion: number;
-  theme: 'light' | 'dark' | 'system';
+  theme: 'light' | 'dark';
   apiKey: string | null;
   streak: { current: number; longest: number; lastStudiedDay: string | null };
   focus: { totalMs: number; sessions: number; durationMin: number };

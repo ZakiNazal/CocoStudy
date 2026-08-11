@@ -64,6 +64,8 @@ export default function App() {
             setNavOpen(false);
             setSettingsOpen(true);
           }}
+          theme={meta?.theme ?? 'light'}
+          onChangeTheme={theme => void updateSettings({ theme })}
         />
       </div>
 

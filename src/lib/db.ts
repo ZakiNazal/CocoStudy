@@ -1,4 +1,5 @@
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
+import { normalizeTheme } from './theme';
 import type { AppMeta, StudySet } from '../types';
 
 export const SCHEMA_VERSION = 1;
@@ -13,7 +14,7 @@ interface CocoDB extends DBSchema {
 
 export const DEFAULT_META: AppMeta = {
   schemaVersion: SCHEMA_VERSION,
-  theme: 'system',
+  theme: 'light',
   apiKey: null,
   streak: { current: 0, longest: 0, lastStudiedDay: null },
   focus: { totalMs: 0, sessions: 0, durationMin: 25 },
@@ -64,7 +65,13 @@ export async function deleteSet(id: string): Promise<void> {
 
 export async function getMeta(): Promise<AppMeta> {
   const stored = await (await db()).get('meta', META_KEY);
-  return { ...DEFAULT_META, ...stored, schemaVersion: SCHEMA_VERSION };
+  return {
+    ...DEFAULT_META,
+    ...stored,
+    schemaVersion: SCHEMA_VERSION,
+    // An install from before the theme was reduced to two may hold 'system'.
+    theme: normalizeTheme(stored?.theme),
+  };
 }
 
 export async function putMeta(patch: Partial<AppMeta>): Promise<AppMeta> {

@@ -1,9 +1,10 @@
 import { useRef, useState } from 'react';
 import { useGSAP } from '@gsap/react';
-import { Plus, Search, Settings } from 'lucide-react';
+import { Moon, Plus, Search, Settings, Sun } from 'lucide-react';
 import { gsap, DUR, EASE, STAGGER, shouldAnimate } from '../../lib/motion';
 import { setMastery } from '../../lib/mastery';
 import { isDue } from '../../lib/srs';
+import { nextTheme, normalizeTheme, type Theme } from '../../lib/theme';
 import MasteryBar from '../ui/MasteryBar';
 import type { StudySet } from '../../types';
 
@@ -13,7 +14,13 @@ interface SidebarProps {
   onSelectSet: (id: string) => void;
   onNewSet: () => void;
   onOpenSettings: () => void;
+  theme: Theme;
+  onChangeTheme: (theme: Theme) => void;
 }
+
+/** The two footer controls read as one pair, so they share a face. */
+const footerButton =
+  'flex h-8 items-center gap-2 rounded-[4px] border border-[var(--rule)] font-mono text-2xs uppercase tracking-[0.1em] text-[var(--ink-2)] transition-colors duration-150 hover:border-[var(--ink)] hover:text-[var(--ink)]';
 
 function dueCount(set: StudySet, now: Date): number {
   return set.flashcards.filter(c => isDue(c.srs, now)).length;
@@ -25,6 +32,8 @@ export default function Sidebar({
   onSelectSet,
   onNewSet,
   onOpenSettings,
+  theme,
+  onChangeTheme,
 }: SidebarProps) {
   const [query, setQuery] = useState('');
   const root = useRef<HTMLDivElement>(null);
@@ -32,6 +41,9 @@ export default function Sidebar({
 
   const filtered = sets.filter(s => s.title.toLowerCase().includes(query.toLowerCase()));
   const totalDue = sets.reduce((sum, s) => sum + dueCount(s, now), 0);
+  // The icon names the palette you would switch to, the way a light switch
+  // shows its destination rather than the room you are standing in.
+  const dark = normalizeTheme(theme) === 'dark';
 
   useGSAP(
     () => {
@@ -54,11 +66,15 @@ export default function Sidebar({
     >
       {/* Masthead */}
       <div className="border-b border-[var(--rule)] px-5 py-5">
-        <div className="flex items-center gap-3">
-          <img src="/logo.png" alt="Logo" className="h-14 w-14 shrink-0 scale-125 object-contain" />
-          <h1 className="display text-lg tracking-[-0.02em]">CocoStudy</h1>
+        {/* The cropped mark, so the box it sits in is the size it reads at —
+            the full logo is mostly glow and would sit smaller than the word. */}
+        <div className="flex items-center gap-2.5">
+          {/* The mark leads: a 36px box holds 32px of ink, close to twice the
+              word's 17.1px cap-to-descender span. */}
+          <img src="/mark.png" alt="" className="h-9 w-9 shrink-0" />
+          <h1 className="display text-xl leading-none tracking-[-0.02em]">CocoStudy</h1>
         </div>
-        <p className="label mt-1">Marked up as you learn</p>
+        <p className="label mt-3">Marked up as you learn</p>
       </div>
 
       {/* Actions */}
@@ -168,13 +184,19 @@ export default function Sidebar({
         )}
       </nav>
 
-      <div className="border-t border-[var(--rule)] px-5 py-3">
-        <button
-          onClick={onOpenSettings}
-          className="flex items-center gap-2 font-mono text-xs uppercase tracking-[0.1em] text-[var(--ink-3)] transition-colors hover:text-[var(--ink)]"
-        >
+      <div className="flex items-center gap-2 border-t border-[var(--rule)] px-5 py-3">
+        <button onClick={onOpenSettings} className={`${footerButton} px-2.5`}>
           <Settings size={14} />
           Settings
+        </button>
+
+        <button
+          onClick={() => onChangeTheme(nextTheme(theme))}
+          title={dark ? 'Switch to light mode' : 'Switch to dark mode'}
+          aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}
+          className={`${footerButton} ml-auto w-8 justify-center`}
+        >
+          {dark ? <Sun size={14} /> : <Moon size={14} />}
         </button>
       </div>
     </div>

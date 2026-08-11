@@ -61,28 +61,8 @@
   --cyan-wash: #B6EFF5;
 }
 
-:root:not([data-theme="light"]) {
-  @media (prefers-color-scheme: dark) {
-    --paper: #0F0E12;
-    --paper-2: #17161C;
-    --paper-3: #211F28;
-    --ink: #EDECE7;
-    --ink-2: #A9A7B0;
-    --ink-3: #75737E;
-    --rule: #2E2C38;
-    --pink: #FF7FB6;
-    --yellow: #F8EE86;
-    --green: #B2F27C;
-    --cyan: #6FE4F0;
-    --red: #FF7A6B;
-
-    --pink-wash: #5C2440;
-    --yellow-wash: #55501F;
-    --green-wash: #2F4A1E;
-    --cyan-wash: #16414A;
-  }
-}
-
+/* Dark is a deliberate choice, never inherited from the OS: light above is the
+   default and this block applies only when the toggle has asked for dark. */
 :root[data-theme="dark"] {
   --paper: #0F0E12;
   --paper-2: #17161C;

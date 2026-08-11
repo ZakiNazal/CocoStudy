@@ -1,5 +1,7 @@
 <!DOCTYPE html>
-<html lang="en">
+<!-- Light is the default palette; the stored choice is applied on load, so a
+     dark-preferring OS never flashes dark before the app has read it. -->
+<html lang="en" data-theme="light">
 
 <head>
   <meta charset="UTF-8" />
@@ -8,7 +10,11 @@
   <meta name="author" content="Zaki Nazzal" />
   <meta name="keywords" content="AI, study companion, flashcards, quiz, notes, education, learning" />
   <title>CocoStudy</title>
-  <link rel="icon" href="/logo.png" />
+  <!-- Cropped to the mark: the full logo is a wide canvas whose glow leaves the
+       C about a third of the frame, which shrinks to nothing in a tab. -->
+  <link rel="icon" href="/favicon.ico" sizes="16x16 32x32 48x48" />
+  <link rel="icon" type="image/png" href="/favicon.png" sizes="64x64" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 </head>
 
 <body>

@@ -5,12 +5,9 @@ import { schedule } from '../lib/srs';
 import { bumpStreak } from '../lib/streak';
 import { extractFromFile, extractFromText, type ExtractResult } from '../lib/extract';
 import { buildDemoSet } from '../lib/demo';
+import { titleFrom } from '../lib/title';
 import { generateFlashcards, generateQuiz, generateSummary } from '../services/ai';
 import type { Grade, ProcessingStatus, StudySet } from '../types';
-
-function titleFrom(markdown: string): string {
-  return /^# (.*)$/m.exec(markdown)?.[1]?.trim() || 'Study Note';
-}
 
 export function useStudySets() {
   const [sets, setSets] = useState<StudySet[]>([]);

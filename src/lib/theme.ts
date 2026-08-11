@@ -2,28 +2,30 @@ import type { AppMeta } from '../types';
 
 export type Theme = AppMeta['theme'];
 
-export const THEMES: readonly Theme[] = ['light', 'dark', 'system'] as const;
+export const THEMES: readonly Theme[] = ['light', 'dark'] as const;
 
-/**
- * Writes the theme choice onto the document root.
- *
- * `system` removes the attribute entirely rather than setting a value: the
- * stylesheet defines light on bare `:root` and switches to dark inside a
- * `prefers-color-scheme` query guarded by `:not([data-theme="light"])`, so an
- * absent attribute is what lets the OS preference through.
- */
+/** The palette a stored value means, defaulting anything unrecognised to light. */
+export function normalizeTheme(value: unknown): Theme {
+  return value === 'dark' ? 'dark' : 'light';
+}
+
 export interface ThemeTarget {
   setAttribute(name: string, value: string): void;
   removeAttribute(name: string): void;
 }
 
+/**
+ * Writes the theme choice onto the document root.
+ *
+ * The stylesheet defines light on bare `:root` and dark under
+ * `[data-theme="dark"]`, so the attribute is always pinned to one of the two —
+ * the OS preference is not consulted.
+ */
 export function applyTheme(theme: Theme, root: ThemeTarget): void {
-  if (theme === 'system') root.removeAttribute('data-theme');
-  else root.setAttribute('data-theme', theme);
+  root.setAttribute('data-theme', normalizeTheme(theme));
 }
 
-/** The palette a choice resolves to right now, for previews and labels. */
-export function resolvedTheme(theme: Theme, prefersDark: boolean): 'light' | 'dark' {
-  if (theme === 'system') return prefersDark ? 'dark' : 'light';
-  return theme;
+/** The palette to switch to when the toggle is pressed. */
+export function nextTheme(theme: Theme): Theme {
+  return normalizeTheme(theme) === 'dark' ? 'light' : 'dark';
 }

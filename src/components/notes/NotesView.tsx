@@ -11,6 +11,7 @@ import {
   X,
 } from 'lucide-react';
 import { getBlobUrl, putBlob } from '../../lib/db';
+import { titleFrom } from '../../lib/title';
 import { generateStudyImage } from '../../services/ai';
 import MarkdownView from './MarkdownView';
 import Banner from '../ui/Banner';
@@ -179,7 +180,9 @@ export default function NotesView({ set, onUpdateSet }: NotesViewProps) {
                 </button>
                 <button
                   onClick={() => {
-                    onUpdateSet({ ...set, summary: draft });
+                    // The heading is the set's name, so renaming it here
+                    // renames the set in the library and its header too.
+                    onUpdateSet({ ...set, summary: draft, title: titleFrom(draft) });
                     setEditing(false);
                   }}
                   className="flex items-center gap-1.5 rounded-[4px] bg-[var(--ink)] px-3 py-1.5 font-mono text-2xs uppercase tracking-[0.1em] text-[var(--paper)] transition-transform active:scale-[0.97]"

@@ -46,45 +46,87 @@ export default function Ritual({ status }: RitualProps) {
         return;
       }
 
-      const tl = gsap.timeline();
+      // The sheet itself arrives once and then stays put — only the marks
+      // made on it repeat, so the loop reads as continued work rather than
+      // the page being replaced over and over.
+      gsap.from('[data-sheet]', {
+        scaleY: 0.94,
+        opacity: 0,
+        duration: DUR.slow,
+        ease: EASE.out,
+      });
 
-      // Beat one — the sheet arrives and rules itself.
+      // Everything the earlier beats established stays on the page.
+      gsap.set('[data-rule]', { scaleX: step >= 2 ? 1 : 0 });
+      gsap.set('[data-mark]', { scaleX: step >= 3 ? 1 : 0, opacity: 1 });
+      gsap.set('[data-numeral]', { opacity: 0 });
+
+      // Runs until the status moves on, so a slow generation never leaves a
+      // finished animation sitting still.
+      const tl = gsap.timeline({ repeat: -1, repeatDelay: 0.5 });
+
+      // Beat one — the page rules itself, then the ruling is wiped away.
       if (step === 1) {
-        tl.from('[data-sheet]', {
-          scaleY: 0.9,
-          opacity: 0,
-          duration: DUR.slow,
-          ease: EASE.out,
-        }).from(
+        tl.fromTo(
           '[data-rule]',
+          { scaleX: 0, transformOrigin: 'left center' },
           {
-            scaleX: 0,
+            scaleX: 1,
             duration: DUR.base,
             ease: EASE.out,
             stagger: STAGGER.standard,
           },
-          '-=0.25',
+        ).to(
+          '[data-rule]',
+          {
+            scaleX: 0,
+            transformOrigin: 'right center',
+            duration: DUR.quick,
+            ease: EASE.in,
+            stagger: STAGGER.micro,
+          },
+          '+=0.7',
         );
       }
 
-      // Beat two — highlighter sweeps the lines worth remembering.
+      // Beat two — highlighter sweeps the lines worth remembering, lifts,
+      // and goes over them again.
       if (step === 2) {
-        tl.to('[data-mark]', {
-          scaleX: 1,
-          duration: DUR.slow,
-          ease: EASE.marker,
-          stagger: STAGGER.dramatic,
-        });
+        tl.fromTo(
+          '[data-mark]',
+          { scaleX: 0, transformOrigin: 'left center' },
+          {
+            scaleX: 1,
+            duration: DUR.slow,
+            ease: EASE.marker,
+            stagger: STAGGER.dramatic,
+          },
+        )
+          .to('[data-mark]', { opacity: 0, duration: DUR.base, ease: EASE.in }, '+=0.8')
+          .set('[data-mark]', { opacity: 1, scaleX: 0 });
       }
 
-      // Beat three — the margin gets numbered.
+      // Beat three — the margin gets numbered, one question at a time.
       if (step === 3) {
-        tl.to('[data-mark]', { scaleX: 1, duration: 0 }).to('[data-numeral]', {
-          opacity: 1,
-          duration: DUR.quick,
-          ease: EASE.out,
-          stagger: STAGGER.standard,
-        });
+        tl.fromTo(
+          '[data-numeral]',
+          { opacity: 0 },
+          {
+            opacity: 1,
+            duration: DUR.quick,
+            ease: EASE.out,
+            stagger: STAGGER.dramatic,
+          },
+        ).to(
+          '[data-numeral]',
+          {
+            opacity: 0,
+            duration: DUR.quick,
+            ease: EASE.in,
+            stagger: STAGGER.dramatic,
+          },
+          '+=0.9',
+        );
       }
     },
     { scope: root, dependencies: [step] },
@@ -109,7 +151,7 @@ export default function Ritual({ status }: RitualProps) {
             return (
               <div key={i} className="relative flex items-center gap-3">
                 <span
-                  data-numeral
+                  {...(markIndex >= 0 ? { 'data-numeral': '' } : {})}
                   className="numeral w-3 shrink-0 text-2xs text-[var(--ink-3)] opacity-0"
                 >
                   {markIndex >= 0 ? markIndex + 1 : ''}

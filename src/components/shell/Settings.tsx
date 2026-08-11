@@ -4,7 +4,6 @@ import Sheet from '../ui/Sheet';
 import Button from '../ui/Button';
 import { resetDb } from '../../lib/db';
 import { buildExport, downloadJson, exportFilename } from '../../lib/export';
-import { THEMES, type Theme } from '../../lib/theme';
 import type { AppMeta, StudySet } from '../../types';
 
 const FOCUS_OPTIONS = [15, 25, 45, 60] as const;
@@ -114,15 +113,7 @@ export default function Settings({ open, onClose, meta, onUpdate, sets }: Settin
   return (
     <Sheet open={open} title="Settings" onClose={onClose}>
       <div className="space-y-6">
-        <Section label="Appearance">
-          <Segmented
-            label="Theme"
-            options={THEMES}
-            value={meta.theme}
-            onChange={(theme: Theme) => void onUpdate({ theme })}
-          />
-        </Section>
-
+        {/* Theme lives on the sidebar footer, next to Settings. */}
         <Section label="Gemini API key">
           {storedKey ? (
             <div className="flex items-center justify-between gap-3 rounded-[4px] border border-[var(--rule)] bg-[var(--paper)] px-3 py-2.5">
