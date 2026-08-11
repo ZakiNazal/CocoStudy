@@ -7,7 +7,10 @@ REQUIREMENTS (MUST FOLLOW EXACTLY):
 2) One-sentence TL;DR (single line, <= 20 words).
 3) Executive summary (1 short paragraph — 2–4 sentences) that explains what the content covers and why it matters.
 4) Learning objectives (bullet list of 3–5 measurable objectives; each starts with a verb such as "Explain", "Identify", "Apply").
-5) Structured outline (H2) — short table-of-contents style bullets linking to the sections you will cover.
+5) Structured outline (H2) — table-of-contents bullets linking to the sections
+   below. Write each as [Exact Section Title](#exact-section-title): the link
+   text must repeat the heading word for word, and the anchor must be that
+   same title lowercased with spaces as hyphens and punctuation dropped.
 6) Detailed notes (H2) with clear H3 subsections. Follow this pattern for each major section:
    - H3 subsection title
    - Short explanatory paragraph (1–3 sentences)
