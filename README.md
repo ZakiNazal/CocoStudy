@@ -1,83 +1,52 @@
-# CocoStudy 🥥✨
+# CocoStudy
+
+Drop in a lecture recording or a slide deck and get back a study guide, a deck of cards on a review schedule, and a tutor that has read all of it.
 
 <img width="1920" height="1080" alt="cocostudy" src="https://github.com/user-attachments/assets/c198c8ae-cd88-440b-87c2-85d8e77c0e02" />
 
-> **Your Intelligent Study Companion**  
-> *Turn chaos into clarity. Transform lectures and notes into mastery.*
+Live at [cocostudy.vercel.app](https://cocostudy.vercel.app/), running entirely in your browser.
 
-CocoStudy is a beautiful, AI-powered web application designed to revolutionize how students learn. Inspired by the "Coconote" aesthetic, it combines a soft, focused UI with the powerful capabilities of AI to automatically generate structured study guides, active recall flashcards, and gamified quizzes from your raw materials.
+## Getting started
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![React](https://img.shields.io/badge/Built%20with-React%2019-61DAFB.svg)
+There is a demo set you can open without a key or an account, which is the fastest way to see whether you like it. For your own material you need a Gemini key, pasted into Settings. It stays in your browser and only ever goes to Google.
 
----
 
-## 🌟 Key Features
+## What it reads
 
-### 🧠 **Smart Content Processing**
-Upload almost anything, and CocoStudy will organize it.
-- **Audio Lectures**: Transcribes and summarizes recordings.
-- **Documents**: Supports **PDF**, **Word (.docx)**, and **PowerPoint (.pptx)** slides.
-- **Raw Text**: Paste your rough notes directly.
+PDFs, Word files, PowerPoint decks, audio, video, or text you paste in. Recordings get transcribed first.
 
-### 📝 **Intelligent Study Guides**
-- **Auto-Summarization**: Generates beautiful Markdown-formatted notes with emojis, bold key terms, and structured hierarchies.
-- **Rich Text Editor**: comprehensive editor to tweak your notes, add checklists, or format text with a custom toolbar.
+## The four tabs
 
-### 🗂️ **Folders**
-- **Shelve Your Sets**: Make folders in the library sidebar and file notes under them by drag-and-drop or the row menu.
-- **Nothing Gets Lost**: Deleting a folder returns its sets to *Unfiled* — it never takes the notes with it.
+Notes is the study guide itself, and the tab I spent the most time on. Headings, key terms, a glossary, practice questions. The contents list at the top actually jumps to its sections, which sounds like table stakes and took two bugs to get right. Maths renders instead of sitting there as `$\lceil 22/8 \rceil$`. Tables come out as tables. Edit any of it. There's a Visualise button that draws the topic when another paragraph isn't going to help.
 
-### ⚡ **Active Recall Tools**
-- **3D Flashcards**: Beautiful, animated flashcards generated automatically from your content to test your memory.
-- **Gamified Quizzes**: Multiple-choice quizzes with instant feedback and **AI-generated explanations** for every answer.
+Cards are generated from the guide, and each one remembers which phrase in your notes it teaches, so the notes highlight themselves as you learn.
 
-### 🤖 **AI Tutor (Chat)**
-- **Focused Assistance**: A dedicated chat interface that knows your specific notes context.
-- **Study-Only Guardrails**: The AI is strictly instructed to focus on academics, refusing off-topic distractions.
-- **Persistent History**: Chat conversations are saved locally so you can pick up where you left off.
+Quiz is five questions with an explanation for every answer, including the ones you got right. Attempts are kept.
 
-### ☁️ **"Cloud" Sync (Local Persistence)**
-- **Auto-Save**: All your study sets, edits, and chat history are instantly saved to your browser's local storage.
-- **Cross-Session**: Close the tab or refresh the page without losing a single byte of data.
+Tutor is a chat that has only read your notes. Ask it for a plainer explanation, or a harder version of a question. Ask it anything else and it will tell you to get back to work.
 
----
+## How the schedule works
 
-## 🛠️ Tech Stack
+Four grades: again, hard, good, easy. Each card has an ease factor starting at 2.5 that drifts between 1.3 and 2.8 depending on how you answer. Get one wrong and it comes back in ten minutes, not tomorrow. Intervals grow from there and stop at a year.
 
-- **Frontend**: React 19, TypeScript
-- **Styling**: Tailwind CSS (Custom Design System with Glassmorphism)
-- **AI Core**: AI SDK
-- **Document Processing**: `mammoth.js` (Docx), `jszip` (PPTX)
-- **Icons**: Lucide React
-- **Typography**: Plus Jakarta Sans
+Colour does the reporting. A term you've never seen is bare graphite, one you're learning is struck in pink, review is yellow, mastered is green. The bar under each set in the sidebar is the whole deck in those inks, so you can read the state of a set without opening it.
 
----
+## The library
 
-## 🚀 Getting Started
+Make folders, drag sets into them. Deleting a folder puts its sets back in Unfiled rather than taking them with it. Search cuts across the lot.
 
-### Website
+## Your data
 
-https://cocostudy.vercel.app/
+All of it lives in IndexedDB on your machine. No account, no upload, and closing the tab costs you nothing.
 
----
+Settings exports a JSON file of every set and all your progress, minus the API key, on the theory that an export is a thing people email to themselves. There's also a wipe.
 
-## 📖 How to Use
+## Built with
 
-1. **Upload**: Drag and drop a PDF lecture slide or an audio recording of a class onto the dashboard.
-2. **Wait**: Watch the sparkle animation as Gemini analyzes the content (usually 5-10 seconds).
-3. **Study**:
-   - **Read**: Review the generated summary in the **Notes** tab. Edit if necessary.
-   - **Memorize**: Switch to **Flashcards** and test yourself.
-   - **Test**: Take the **Quiz** to verify your understanding.
-   - **Ask**: Use the **AI Tutor** tab to ask specific questions like "Explain this concept like I'm 5".
+React 19, TypeScript, Tailwind v4, Vite. GSAP for motion, react-markdown with remark-gfm and KaTeX, idb for storage, mammoth and jszip for reading documents, Gemini for generation.
 
----
+Bricolage Grotesque for display, Source Serif 4 for reading, Martian Mono for anything that's data or a label. Light and dark are both chosen, never inherited from the OS.
 
-## 📄 License
+## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
-
-*Built with ❤️ for students everywhere.*
+MIT.
