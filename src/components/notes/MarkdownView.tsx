@@ -1,4 +1,7 @@
 import ReactMarkdown, { type Components } from 'react-markdown';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+import 'katex/dist/katex.min.css';
 
 /**
  * Markdown mapped onto the MARKED UP type system. Study notes are long-form
@@ -64,6 +67,20 @@ const components: Components = {
   ),
 };
 
+/**
+ * Models write maths as LaTeX between dollar signs whatever the prompt asks,
+ * so it is rendered rather than left as `$2^n \ge \text{target}$` on the page.
+ * `throwOnError: false` keeps a malformed expression from taking down the
+ * whole guide — KaTeX prints the source in red and the rest still reads.
+ */
 export default function MarkdownView({ children }: { children: string }) {
-  return <ReactMarkdown components={components}>{children}</ReactMarkdown>;
+  return (
+    <ReactMarkdown
+      components={components}
+      remarkPlugins={[remarkMath]}
+      rehypePlugins={[[rehypeKatex, { throwOnError: false, strict: false }]]}
+    >
+      {children}
+    </ReactMarkdown>
+  );
 }

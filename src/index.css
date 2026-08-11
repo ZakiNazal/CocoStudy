@@ -130,6 +130,29 @@ body {
   letter-spacing: -0.02em;
 }
 
+/* --- Maths --------------------------------------------------------- */
+
+/* KaTeX ships at 1.21em on the assumption it sits in a small body face. The
+   guide is set in a serif at reading size, so it is pulled back to match the
+   surrounding line and inherit its colour rather than assert its own. */
+.katex {
+  font-size: 1.02em;
+  color: inherit;
+}
+
+/* A long derivation scrolls inside its own block instead of widening the
+   column and forcing the whole page sideways. */
+.katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.35rem 0;
+}
+
+/* KaTeX's own error state, kept legible in both palettes. */
+.katex .katex-error {
+  color: var(--red);
+}
+
 /* --- Structure ----------------------------------------------------- */
 
 .hairline {

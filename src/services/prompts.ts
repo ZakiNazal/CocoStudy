@@ -23,6 +23,12 @@ FORMAT RULES (MANDATORY):
 - Use consistent heading hierarchy and spacing. Keep tone professional and clear.
 - Keep the executive summary and TL;DR short and sharp.
 - Avoid producing more than ~1200 words total.
+- In ordinary prose write symbols as plain characters — → ≥ ≤ ≈ × ± — never as
+  LaTeX commands. "Vacuum Tubes → Transistors", not "Vacuum Tubes $\\rightarrow$
+  Transistors".
+- Reserve $...$ (inline) and $$...$$ (display) for real mathematical
+  expressions such as $2^n \\ge 4{,}000{,}000$ or $\\lceil 22 / 8 \\rceil = 3$.
+  Never wrap a plain English word or a lone arrow in dollar signs.
 `;
 
 export const flashcardPrompt = (summary: string) => `
@@ -33,6 +39,9 @@ Keep the front concise (question/term) and the back informative (answer/definiti
 verbatim from the notes so it can be located in the text. If no single phrase fits,
 use an empty string.
 
+Cards are shown as plain text, so write every symbol as a plain character — →
+≥ ≈ × ², and 2^n for powers. Never use LaTeX or dollar signs.
+
 Notes:
 ${summary.substring(0, 10000)}
 `;
@@ -40,6 +49,9 @@ ${summary.substring(0, 10000)}
 export const quizPrompt = (summary: string) => `
 Based on the following notes, create a multiple-choice quiz with 5 challenging questions.
 Return a JSON array.
+
+Questions and options are shown as plain text, so write every symbol as a plain
+character — → ≥ ≈ × ², and 2^n for powers. Never use LaTeX or dollar signs.
 
 Notes:
 ${summary.substring(0, 10000)}
@@ -55,6 +67,8 @@ STRICT GUIDELINES:
 2. If the user asks about unrelated topics, politely refuse: "I am focused on helping you study. Let's get back to the notes."
 3. Be concise, encouraging, and clear.
 4. Use formatting (bold, bullet points) to make explanations easy to read.
+5. Write symbols in prose as plain characters (→ ≥ ≈ ×). Dollar signs are for
+   real maths only — $2^n$ renders, "$\\rightarrow$" just looks broken.
 
 STUDY NOTES CONTEXT:
 ${context}`;

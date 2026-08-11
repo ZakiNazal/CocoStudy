@@ -9,6 +9,6 @@ export default defineConfig({
     environment: 'node',
     globals: true,
     setupFiles: ['./src/vitest.setup.ts'],
-    include: ['src/**/*.test.ts'],
+    include: ['src/**/*.test.{ts,tsx}'],
   },
 });
