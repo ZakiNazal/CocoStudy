@@ -78,6 +78,7 @@ export default function TutorView({
   };
 
   const starters = starterPrompts(summary, title);
+  const ready = draft.trim().length > 0 && !busy;
 
   return (
     <div className="flex h-full flex-col">
@@ -153,7 +154,9 @@ export default function TutorView({
             </div>
           )}
 
-          <div className="flex items-end gap-2 rounded-[4px] border border-[var(--rule)] bg-[var(--paper)] px-3 py-2 focus-within:border-[var(--ink)]">
+          {/* One focus edge, drawn by the box rather than the field inside it:
+              the border inks up and a paper halo sits outside it. */}
+          <div className="flex items-end gap-2 rounded-[4px] border border-[var(--rule)] bg-[var(--paper)] px-3 py-2 transition-[border-color,box-shadow] duration-150 focus-within:border-[var(--ink)] focus-within:shadow-[0_0_0_3px_var(--paper-3)]">
             <textarea
               ref={composer}
               rows={1}
@@ -167,21 +170,30 @@ export default function TutorView({
               }}
               placeholder="Ask about these notes"
               aria-label="Ask the tutor about these notes"
-              className="max-h-40 min-h-[1.5rem] flex-1 resize-none bg-transparent text-sm leading-6 text-[var(--ink)] placeholder:text-[var(--ink-3)] focus:outline-none"
+              className="max-h-40 min-h-[2rem] flex-1 resize-none self-center bg-transparent py-1 text-sm leading-6 text-[var(--ink)] placeholder:text-[var(--ink-3)] focus:outline-none"
             />
+            {/* Empty, the stamp is an outline; the moment there is something to
+                send it fills with ink. */}
             <button
               onClick={() => void send(draft)}
-              disabled={!draft.trim() || busy}
+              disabled={!ready}
               aria-label="Send message"
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[4px] bg-[var(--ink)] text-[var(--paper)] transition-[opacity,transform] duration-150 active:scale-[0.94] disabled:opacity-30 disabled:active:scale-100"
+              className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-[4px] border transition-[background-color,border-color,color,transform] duration-150 ${
+                ready
+                  ? 'border-[var(--ink)] bg-[var(--ink)] text-[var(--paper)] hover:border-[var(--ink-2)] hover:bg-[var(--ink-2)] active:scale-[0.94]'
+                  : 'border-[var(--rule)] bg-transparent text-[var(--ink-3)]'
+              }`}
             >
               {busy ? <Loader2 size={15} className="animate-spin" /> : <ArrowUp size={15} />}
             </button>
           </div>
 
-          <p className="mt-2 text-2xs text-[var(--ink-3)]">
-            Enter sends · Shift + Enter adds a line
-          </p>
+          <div className="mt-2 flex items-baseline justify-between gap-4">
+            <p className="text-2xs text-[var(--ink-3)]">
+              The tutor can get things wrong — check important answers against your notes.
+            </p>
+            <span className="label hidden shrink-0 sm:inline">From your notes</span>
+          </div>
         </div>
       </div>
     </div>

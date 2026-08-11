@@ -172,10 +172,16 @@ body {
 
 /* --- Focus --------------------------------------------------------- */
 
-:where(a, button, input, textarea, select, [tabindex]):focus-visible {
-  outline: 2px solid var(--ink);
-  outline-offset: 2px;
-  border-radius: 2px;
+/* In `base` so a utility can turn it off. Unlayered rules beat every layered
+   one whatever the specificity, and Tailwind ships its utilities in a layer —
+   left outside, this would draw a second ring inside every field that already
+   marks focus by darkening its own border to ink. */
+@layer base {
+  :where(a, button, input, textarea, select, [tabindex]):focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
 }
 
 /* --- Scrollbars ---------------------------------------------------- */
