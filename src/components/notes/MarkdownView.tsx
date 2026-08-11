@@ -1,8 +1,57 @@
+import type { MouseEvent } from 'react';
 import ReactMarkdown, { type Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
+import rehypeSlug from 'rehype-slug';
 import 'katex/dist/katex.min.css';
+import { findHeading, scrollParent, type HeadingRef } from '../../lib/anchors';
+import { shouldAnimate } from '../../lib/motion';
+
+/** Room above a heading once it lands, so it is not flush to the pane's edge. */
+const JUMP_GUTTER = 20;
+
+/**
+ * Jumps to the section an outline bullet names.
+ *
+ * The default `#hash` navigation is not usable here: the guide scrolls inside
+ * a pane rather than the document, and letting the browser handle it would
+ * stamp a fragment onto the URL of a single-page app for a move that is not
+ * navigation at all.
+ */
+function jumpToSection(event: MouseEvent<HTMLAnchorElement>, href: string) {
+  const link = event.currentTarget;
+  const root = link.closest('[data-markdown]') ?? document;
+  const nodes = [...root.querySelectorAll<HTMLElement>('h1, h2, h3, h4')];
+  const headings: HeadingRef[] = nodes.map(n => ({ id: n.id, text: n.textContent ?? '' }));
+
+  const index = findHeading(headings, href, link.textContent ?? '');
+  // Nothing matched, so the link is left to the browser rather than swallowed.
+  if (index === -1) return;
+
+  event.preventDefault();
+  const target = nodes[index];
+  const pane = scrollParent(target);
+
+  if (pane) {
+    const top = target.getBoundingClientRect().top - pane.getBoundingClientRect().top;
+    pane.scrollTo({
+      top: pane.scrollTop + top - JUMP_GUTTER,
+      behavior: shouldAnimate() ? 'smooth' : 'auto',
+    });
+  }
+
+  // A struck heading, so the eye finds where it landed the way a marker finds
+  // a line. The class removes itself, leaving the heading as it was.
+  if (!shouldAnimate()) return;
+  target.classList.remove('struck');
+  // Reading the layout restarts the animation when the same link is clicked twice.
+  void target.offsetWidth;
+  target.classList.add('struck');
+  target.addEventListener('animationend', () => target.classList.remove('struck'), {
+    once: true,
+  });
+}
 
 /**
  * Markdown mapped onto the MARKED UP type system. Study notes are long-form
@@ -10,14 +59,22 @@ import 'katex/dist/katex.min.css';
  * takes the mono face.
  */
 const components: Components = {
-  h1: ({ children }) => (
-    <h1 className="display mt-12 text-2xl first:mt-0 sm:text-3xl">{children}</h1>
+  // `id` is the slug rehype-slug puts on the heading — dropping it here would
+  // leave the outline links with nothing to find.
+  h1: ({ children, id }) => (
+    <h1 id={id} className="display mt-12 text-2xl first:mt-0 sm:text-3xl">
+      {children}
+    </h1>
   ),
-  h2: ({ children }) => (
-    <h2 className="display mt-10 border-b border-[var(--rule)] pb-2 text-xl">{children}</h2>
+  h2: ({ children, id }) => (
+    <h2 id={id} className="display mt-10 border-b border-[var(--rule)] pb-2 text-xl">
+      {children}
+    </h2>
   ),
-  h3: ({ children }) => (
-    <h3 className="display mt-7 text-base uppercase tracking-[0.06em]">{children}</h3>
+  h3: ({ children, id }) => (
+    <h3 id={id} className="display mt-7 text-base uppercase tracking-[0.06em]">
+      {children}
+    </h3>
   ),
   p: ({ children }) => <p className="mt-4 leading-[1.75] text-[var(--ink-2)]">{children}</p>,
   strong: ({ children }) => (
@@ -64,14 +121,26 @@ const components: Components = {
     </pre>
   ),
   hr: () => <hr className="mt-8 border-[var(--rule)]" />,
-  a: ({ href, children }) => (
-    <a
-      href={href}
-      className="underline decoration-[var(--ink-3)] underline-offset-2 hover:decoration-[var(--ink)]"
-    >
-      {children}
-    </a>
-  ),
+  a: ({ href, children }) =>
+    href?.startsWith('#') ? (
+      <a
+        href={href}
+        onClick={e => jumpToSection(e, href)}
+        className="underline decoration-[var(--ink-3)] underline-offset-2 transition-colors duration-150 hover:decoration-[var(--ink)] hover:text-[var(--ink)]"
+      >
+        {children}
+      </a>
+    ) : (
+      // Anything off the page opens beside the guide, never over it.
+      <a
+        href={href}
+        target="_blank"
+        rel="noreferrer noopener"
+        className="underline decoration-[var(--ink-3)] underline-offset-2 hover:decoration-[var(--ink)]"
+      >
+        {children}
+      </a>
+    ),
   // A register or bit-layout table is wider than the column it sits in, so the
   // cells hold their line and the table scrolls sideways inside its own box.
   table: ({ children }) => (
@@ -103,12 +172,16 @@ const components: Components = {
  */
 export default function MarkdownView({ children }: { children: string }) {
   return (
-    <ReactMarkdown
-      components={components}
-      remarkPlugins={[remarkGfm, remarkMath]}
-      rehypePlugins={[[rehypeKatex, { throwOnError: false, strict: false }]]}
-    >
-      {children}
-    </ReactMarkdown>
+    // The marker the outline links search within, so a jump inside the tutor
+    // thread cannot land on a heading in the guide behind it.
+    <div data-markdown>
+      <ReactMarkdown
+        components={components}
+        remarkPlugins={[remarkGfm, remarkMath]}
+        rehypePlugins={[rehypeSlug, [rehypeKatex, { throwOnError: false, strict: false }]]}
+      >
+        {children}
+      </ReactMarkdown>
+    </div>
   );
 }

@@ -170,6 +170,29 @@ body {
   );
 }
 
+/* A heading an outline link has just jumped to, struck with the marker for a
+   beat so the eye finds where it landed. */
+@keyframes struck {
+  from {
+    background-color: var(--yellow-wash);
+    box-shadow: -0.35rem 0 0 var(--yellow-wash), 0.35rem 0 0 var(--yellow-wash);
+  }
+  to {
+    background-color: transparent;
+    box-shadow: -0.35rem 0 0 transparent, 0.35rem 0 0 transparent;
+  }
+}
+
+.struck {
+  animation: struck 1.4s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .struck {
+    animation: none;
+  }
+}
+
 /* --- Focus --------------------------------------------------------- */
 
 /* In `base` so a utility can turn it off. Unlayered rules beat every layered
