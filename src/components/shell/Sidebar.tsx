@@ -54,17 +54,9 @@ export default function Sidebar({
     >
       {/* Masthead */}
       <div className="border-b border-[var(--rule)] px-5 py-5">
-        <div className="flex items-baseline justify-between">
+        <div className="flex items-center gap-3">
+          <img src="/logo.png" alt="Logo" className="h-14 w-14 shrink-0 scale-125 object-contain" />
           <h1 className="display text-lg tracking-[-0.02em]">CocoStudy</h1>
-          {totalDue > 0 && (
-            <span
-              className="numeral px-1.5 py-0.5 text-2xs font-bold text-[var(--ink)]"
-              style={{ background: 'var(--pink-wash)' }}
-              title={`${totalDue} cards due for review`}
-            >
-              {totalDue} due
-            </span>
-          )}
         </div>
         <p className="label mt-1">Marked up as you learn</p>
       </div>
@@ -97,7 +89,18 @@ export default function Sidebar({
 
       {/* Library */}
       <div className="flex items-center justify-between border-y border-[var(--rule)] px-5 py-2">
-        <span className="label">Library</span>
+        <div className="flex items-center gap-3">
+          <span className="label">Library</span>
+          {totalDue > 0 && (
+            <span
+              className="numeral shrink-0 whitespace-nowrap rounded-[4px] px-1.5 py-0.5 text-2xs font-bold text-[var(--ink)]"
+              style={{ background: 'var(--pink-wash)' }}
+              title={`${totalDue} cards due for review`}
+            >
+              {totalDue} due
+            </span>
+          )}
+        </div>
         <span className="numeral text-2xs text-[var(--ink-3)]">{sets.length}</span>
       </div>
 
@@ -125,9 +128,8 @@ export default function Sidebar({
                 data-row
                 onClick={() => onSelectSet(set.id)}
                 aria-current={active ? 'true' : undefined}
-                className={`relative block w-full border-b border-[var(--rule)] px-5 py-3 text-left transition-colors duration-150 ${
-                  active ? 'bg-[var(--paper-3)]' : 'hover:bg-[var(--paper-3)]/60'
-                }`}
+                className={`relative block w-full border-b border-[var(--rule)] px-5 py-3 text-left transition-colors duration-150 ${active ? 'bg-[var(--paper-3)]' : 'hover:bg-[var(--paper-3)]/60'
+                  }`}
               >
                 {active && (
                   <span
