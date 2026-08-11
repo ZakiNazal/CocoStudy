@@ -1,26 +1,14 @@
-import { defineConfig, loadEnv } from 'vite';
+/// <reference types="vitest/config" />
+import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import tailwindcss from '@tailwindcss/vite';
 
-// https://vitejs.dev/config/
-export default defineConfig(({ mode }) => {
-  // Load env file based on `mode` in the current working directory.
-  // Set the third parameter to '' to load all env regardless of the `VITE_` prefix.
-  const env = loadEnv(mode, (process as any).cwd(), '');
-  return {
-    plugins: [react()],
-    // Prevent Vite dev server from trying to pre-bundle @google/genai — we rely on the browser import map.
-    optimizeDeps: {
-      exclude: ['@google/genai']
-    },
-    build: {
-      // Do not bundle @google/genai — we load it via the import map in index.html (CDN)
-      rollupOptions: {
-        external: ['@google/genai']
-      }
-    },
-    define: {
-      // Polyfill process.env.API_KEY so the existing code works without modification
-      'process.env.API_KEY': JSON.stringify(env.API_KEY)
-    }
-  };
+export default defineConfig({
+  plugins: [react(), tailwindcss()],
+  test: {
+    environment: 'node',
+    globals: true,
+    setupFiles: ['./src/vitest.setup.ts'],
+    include: ['src/**/*.test.ts'],
+  },
 });
