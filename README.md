@@ -1,6 +1,6 @@
 # CocoStudy 🥥✨
 
-<img width="1920" height="1080" alt="cocostudy" src="https://github.com/user-attachments/assets/c198c8ae-cd88-440b-87c2-85d8e77c0e02" />
+<img width="1920" height="1080" alt="cocostudy" src="https://github.com/user-attachments/assets/5d7f3312-b4ae-4d17-90ce-e676b62bdd24" />
 
 > **Your Intelligent Study Companion**  
 > *Turn chaos into clarity. Transform lectures and notes into mastery.*
