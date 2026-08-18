@@ -1,6 +1,9 @@
 <div align="center">
 
 <img src="docs/mark.png" alt="" width="96" />
+<img width="850" height="550" alt="logo" src="https://github.com/user-attachments/assets/c3451f65-d1f5-402a-bf2b-bd839f6c425b" />
+
+# CocoStudy 🥥✨
 
 # CocoStudy
 
@@ -10,6 +13,8 @@ Drop in a lecture recording or a slide deck and get back a study guide,
 a deck of cards on a review schedule, and a tutor that has read all of it.
 
 [**cocostudy.vercel.app**](https://cocostudy.vercel.app/)
+---
+<img width="1920" height="1080" alt="cocostudy" src="https://github.com/user-attachments/assets/5d7f3312-b4ae-4d17-90ce-e676b62bdd24" />
 
 </div>
 
