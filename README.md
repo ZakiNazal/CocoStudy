@@ -1,5 +1,3 @@
-<div align="center">
-
 <img src="docs/mark.png" alt="" width="96" />
 <img width="850" height="550" alt="logo" src="https://github.com/user-attachments/assets/c3451f65-d1f5-402a-bf2b-bd839f6c425b" />
 
