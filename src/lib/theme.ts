@@ -22,7 +22,11 @@ export interface ThemeTarget {
  * the OS preference is not consulted.
  */
 export function applyTheme(theme: Theme, root: ThemeTarget): void {
-  root.setAttribute('data-theme', normalizeTheme(theme));
+  const norm = normalizeTheme(theme);
+  root.setAttribute('data-theme', norm);
+  if ('classList' in root && (root as { classList?: DOMTokenList }).classList) {
+    (root as { classList: DOMTokenList }).classList.toggle('dark', norm === 'dark');
+  }
 }
 
 /** The palette to switch to when the toggle is pressed. */

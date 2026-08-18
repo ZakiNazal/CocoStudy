@@ -391,7 +391,7 @@ export default function NotesView({ set, onUpdateSet }: NotesViewProps) {
                       <section
                         key={section.id}
                         id={section.id}
-                        className="rounded-[6px] border border-[var(--rule)] bg-[#FAF8F5]/90 dark:bg-[var(--paper-2)] overflow-hidden transition-colors"
+                        className="rounded-[6px] border border-[var(--rule)] bg-[var(--paper-2)] overflow-hidden transition-colors"
                       >
                         <button
                           onClick={() => toggleSection(section.id)}
@@ -414,7 +414,7 @@ export default function NotesView({ set, onUpdateSet }: NotesViewProps) {
                   })}
                 </div>
               ) : (
-                <div className="rounded-[6px] border border-[var(--rule)] bg-[#FAF8F5]/90 dark:bg-[var(--paper-2)] p-6">
+                <div className="rounded-[6px] border border-[var(--rule)] bg-[var(--paper-2)] p-6">
                   <MarkdownView>{set.summary}</MarkdownView>
                 </div>
               )}

@@ -71,7 +71,7 @@ export default function Intake({ onProcess, onLoadDemo, hasSets, status }: Intak
     <div ref={root} className="h-full overflow-y-auto">
       <div className="mx-auto max-w-3xl px-6 py-12 sm:px-10">
         {/* Hero — the thesis */}
-        <header data-reveal className="border border-[var(--rule)] bg-white dark:bg-[var(--paper-2)]">
+        <header data-reveal className="border border-[var(--rule)] bg-[var(--paper-2)]">
           <div className="flex items-center justify-between border-b border-[var(--rule)] px-6 py-2">
             <span className="text-2xs font-bold uppercase tracking-[0.1em] text-[var(--ink)]">
               New study set
@@ -85,12 +85,12 @@ export default function Intake({ onProcess, onLoadDemo, hasSets, status }: Intak
             <h2 className="display display-xl text-3xl sm:text-4xl font-extrabold text-[#0052FF] leading-[1.08]">
               Read it once.
               <br />
-              <span className="relative inline-block mt-0.5">
+              <span className="relative inline-block mt-1">
                 <span
                   aria-hidden="true"
-                  className="absolute inset-0 bg-[#FEF08A] dark:bg-[#55501F] z-0 -mx-1 px-1"
+                  className="absolute inset-0 bg-[#FEF08A] z-0 -mx-1 px-1 rounded-[2px]"
                 />
-                <span className="relative z-10 text-[#0052FF]">Know it</span>
+                <span className="relative z-10 text-[#0052FF] font-black">Know it</span>
               </span>{' '}
               <span className="text-[#0052FF]">for good.</span>
             </h2>
@@ -249,7 +249,7 @@ export default function Intake({ onProcess, onLoadDemo, hasSets, status }: Intak
                 value={text}
                 onChange={e => setText(e.target.value)}
                 placeholder="Paste anything you need to learn. Markdown works."
-                className="ruled mt-2 h-64 w-full resize-none border border-[var(--rule)] bg-white dark:bg-[var(--paper-2)] px-4 py-[0.4rem] leading-[1.6rem] text-[var(--ink)] placeholder:text-[var(--ink-3)] focus:border-[#0052FF] focus:outline-none"
+                className="mt-2 h-64 w-full resize-none rounded-[4px] border border-[var(--rule)] bg-[var(--paper-2)] p-4 leading-relaxed text-[var(--ink)] placeholder:text-[var(--ink-3)] focus:border-[#0052FF] focus:outline-none"
               />
               <div className="mt-4 flex items-center justify-between">
                 <span className="numeral text-2xs text-[var(--ink-3)]">
