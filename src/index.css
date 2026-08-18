@@ -8,8 +8,8 @@
 
 @theme {
   --font-display: "Bricolage Grotesque Variable", ui-sans-serif, system-ui, sans-serif;
-  --font-body: "Source Serif 4 Variable", ui-serif, Georgia, serif;
-  --font-mono: "Martian Mono Variable", ui-monospace, SFMono-Regular, monospace;
+  --font-body: "Bricolage Grotesque Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Martian Mono Variable", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 
   --color-paper: var(--paper);
   --color-paper-2: var(--paper-2);
@@ -40,25 +40,26 @@
 /* Light is the default and is fully defined here. Dark redefines only
    what changes, so no colour has its single definition inside a query. */
 :root {
-  --paper: #EEEDE8;
-  --paper-2: #F7F6F2;
-  --paper-3: #E3E1DA;
-  --ink: #16151A;
-  --ink-2: #56545C;
+  --paper: #F4F3ED;
+  --paper-2: #FFFFFF;
+  --paper-3: #EAE8E1;
+  --button: #0052FF;
+  --ink: #111827;
+  --ink-2: #4B5563;
   --ink-3: #8B8A85;
-  --rule: #D5D3CB;
-  --pink: #FF5FA2;
-  --yellow: #F5E663;
-  --green: #9BEE5C;
-  --cyan: #43D9E8;
-  --red: #C2321F;
+  --rule: #E2E0D8;
+  --pink: #FF4081;
+  --yellow: #FACC15;
+  --green: #84CC16;
+  --cyan: #38BDF8;
+  --red: #EF4444;
 
   /* Highlighter fills sit behind ink, so they run lighter than the pure
      marker colour to keep 4.5:1 against --ink on top. */
-  --pink-wash: #FFC9E0;
-  --yellow-wash: #FBF3AE;
-  --green-wash: #D3F7B4;
-  --cyan-wash: #B6EFF5;
+  --pink-wash: #FFD6E5;
+  --yellow-wash: #FEF08A;
+  --green-wash: #DCFCE7;
+  --cyan-wash: #E0F2FE;
 }
 
 /* Dark is a deliberate choice, never inherited from the OS: light above is the
@@ -105,29 +106,29 @@ body {
   font-family: var(--font-display);
   font-weight: 700;
   line-height: 0.95;
-  letter-spacing: -0.03em;
+  letter-spacing: 0em;
   font-variation-settings: "wdth" 100;
 }
 
 /* Larger display sizes widen and tighten. */
 .display-xl {
   font-variation-settings: "wdth" 112;
-  letter-spacing: -0.045em;
+  letter-spacing: 0em;
 }
 
 .label {
   font-family: var(--font-mono);
   font-size: var(--text-2xs);
   font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  letter-spacing: 0em;
+  text-transform: none;
   color: var(--ink-3);
 }
 
 .numeral {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
-  letter-spacing: -0.02em;
+  letter-spacing: 0em;
 }
 
 /* --- Maths --------------------------------------------------------- */
@@ -161,13 +162,11 @@ body {
 
 /* Ruled paper. The rhythm is the body line-height so text sits on it. */
 .ruled {
-  background-image: repeating-linear-gradient(
-    to bottom,
-    transparent 0,
-    transparent calc(1.6rem - 1px),
-    var(--rule) calc(1.6rem - 1px),
-    var(--rule) 1.6rem
-  );
+  background-image: repeating-linear-gradient(to bottom,
+      transparent 0,
+      transparent calc(1.6rem - 1px),
+      var(--rule) calc(1.6rem - 1px),
+      var(--rule) 1.6rem);
 }
 
 /* A heading an outline link has just jumped to, struck with the marker for a
@@ -177,6 +176,7 @@ body {
     background-color: var(--yellow-wash);
     box-shadow: -0.35rem 0 0 var(--yellow-wash), 0.35rem 0 0 var(--yellow-wash);
   }
+
   to {
     background-color: transparent;
     box-shadow: -0.35rem 0 0 transparent, 0.35rem 0 0 transparent;

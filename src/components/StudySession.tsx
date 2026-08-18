@@ -160,8 +160,12 @@ export default function StudySession({
             <QuizView
               quiz={set.quiz}
               attempts={set.quizAttempts}
+              summary={set.summary}
               run={quizRun}
               onRunChange={setQuizRun}
+              onUpdateQuiz={newQuiz =>
+                onUpdateSet({ ...set, quiz: newQuiz, quizAttempts: [] })
+              }
               onSubmit={attempt =>
                 onUpdateSet({ ...set, quizAttempts: [...set.quizAttempts, attempt] })
               }

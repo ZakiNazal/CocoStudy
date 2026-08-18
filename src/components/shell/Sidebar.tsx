@@ -164,9 +164,8 @@ export default function Sidebar({
           e.dataTransfer.effectAllowed = 'move';
         }}
         onDragEnd={() => setDropTarget(null)}
-        className={`group relative border-b border-[var(--rule)] transition-colors duration-150 ${
-          active ? 'bg-[var(--paper-3)]' : 'hover:bg-[var(--paper-3)]/60'
-        }`}
+        className={`group relative border-b border-[var(--rule)] transition-colors duration-150 ${active ? 'bg-[var(--paper-3)]' : 'hover:bg-[var(--paper-3)]/60'
+          }`}
       >
         {active && (
           <span
@@ -208,9 +207,8 @@ export default function Sidebar({
           onClick={() => setSetMenu(open ? null : set.id)}
           aria-label={`File “${set.title}” in a folder`}
           aria-expanded={open}
-          className={`absolute right-2 top-2.5 flex h-6 w-6 items-center justify-center rounded-[4px] text-[var(--ink-3)] transition-opacity duration-150 hover:bg-[var(--paper)] hover:text-[var(--ink)] focus:opacity-100 ${
-            open ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
-          }`}
+          className={`absolute right-2 top-2.5 flex h-6 w-6 items-center justify-center rounded-[4px] text-[var(--ink-3)] transition-opacity duration-150 hover:bg-[var(--paper)] hover:text-[var(--ink)] focus:opacity-100 ${open ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+            }`}
         >
           <MoreHorizontal size={14} />
         </button>
@@ -269,9 +267,8 @@ export default function Sidebar({
             if (setId) onMoveSet(setId, folder?.id ?? null);
             setDropTarget(null);
           }}
-          className={`relative flex items-center gap-1.5 border-b border-[var(--rule)] px-3 py-1.5 transition-colors duration-150 ${
-            over ? 'bg-[var(--pink-wash)]' : 'bg-[var(--paper-2)]'
-          }`}
+          className={`relative flex items-center gap-1.5 border-b border-[var(--rule)] px-3 py-1.5 transition-colors duration-150 ${over ? 'bg-[var(--pink-wash)]' : 'bg-[var(--paper-2)]'
+            }`}
         >
           {renamingId === id && folder ? (
             <input
@@ -363,29 +360,27 @@ export default function Sidebar({
   return (
     <div
       ref={root}
-      className="flex h-full w-[17.5rem] flex-col border-r border-[var(--rule)] bg-[var(--paper-2)]"
+      className="flex h-full w-[17.5rem] flex-col border-r border-[var(--rule)] bg-white dark:bg-[var(--paper-2)]"
     >
       {/* Masthead */}
       <div className="border-b border-[var(--rule)] px-5 py-5">
-        {/* The cropped mark, so the box it sits in is the size it reads at —
-            the full logo is mostly glow and would sit smaller than the word. */}
         <div className="flex items-center gap-2.5">
-          {/* The mark leads: a 36px box holds 32px of ink, close to twice the
-              word's 17.1px cap-to-descender span. */}
           <img src="/mark.png" alt="" className="h-9 w-9 shrink-0" />
-          <h1 className="display text-xl leading-none tracking-[-0.02em]">CocoStudy</h1>
+          <h1 className="display text-xl font-bold leading-none tracking-[-0.02em] text-[var(--ink)]">
+            CocoStudy
+          </h1>
         </div>
-        <p className="label mt-3">Marked up as you learn</p>
+        <p className="mt-1 text-xs text-[var(--ink-2)]">Marked Up As You Learn!</p>
       </div>
 
       {/* Actions */}
       <div className="space-y-3 px-5 py-4">
         <button
           onClick={onNewSet}
-          className="group flex h-11 w-full items-center justify-center gap-2 rounded-[4px] bg-[var(--ink)] font-mono text-xs font-semibold uppercase tracking-[0.1em] text-[var(--paper)] transition-[background-color,transform] duration-150 hover:bg-[var(--ink-2)] active:scale-[0.97]"
+          className="group flex h-10 w-full items-center justify-center gap-2 rounded-[6px] bg-[#0052FF] text-xs font-semibold text-white transition-[background-color,transform] duration-150 hover:bg-[#0042D1] active:scale-[0.98]"
         >
           <Plus size={15} strokeWidth={2.5} />
-          New set
+          <span>New Set</span>
         </button>
 
         <div className="relative">
@@ -399,7 +394,7 @@ export default function Sidebar({
             onChange={e => setQuery(e.target.value)}
             placeholder="Search"
             aria-label="Search your library"
-            className="h-9 w-full rounded-[4px] border border-[var(--rule)] bg-[var(--paper)] pl-8 pr-3 font-mono text-xs text-[var(--ink)] placeholder:text-[var(--ink-3)] focus:border-[var(--ink)] focus:outline-none"
+            className="h-9 w-full rounded-[6px] border border-[var(--rule)] bg-[#EAEAEA]/70 dark:bg-[var(--paper-3)] pl-8 pr-3 text-xs text-[var(--ink)] placeholder:text-[var(--ink-3)] focus:border-[#0052FF] focus:outline-none"
           />
         </div>
       </div>
@@ -407,7 +402,7 @@ export default function Sidebar({
       {/* Library */}
       <div className="flex items-center justify-between gap-2 border-y border-[var(--rule)] px-5 py-2">
         <div className="flex min-w-0 items-center gap-3">
-          <span className="label">Library</span>
+          <span className="text-xs text-[var(--ink-2)]">Library</span>
           {totalDue > 0 && (
             <span
               className="numeral shrink-0 whitespace-nowrap rounded-[4px] px-1.5 py-0.5 text-2xs font-bold text-[var(--ink)]"
@@ -427,11 +422,11 @@ export default function Sidebar({
             }}
             aria-label="New folder"
             title="New folder"
-            className="flex h-5 w-5 items-center justify-center rounded-[4px] text-[var(--ink-3)] hover:bg-[var(--paper-3)] hover:text-[var(--ink)]"
+            className="flex h-5 w-5 items-center justify-center rounded-[4px] text-[var(--ink)] hover:bg-[var(--paper-3)]"
           >
             <FolderPlus size={14} />
           </button>
-          <span className="numeral text-2xs text-[var(--ink-3)]">{sets.length}</span>
+          <span className="numeral text-xs text-[var(--ink)]">{sets.length}</span>
         </div>
       </div>
 
@@ -453,8 +448,8 @@ export default function Sidebar({
 
       <nav className="flex-1 overflow-y-auto" aria-label="Study sets">
         {sets.length === 0 ? (
-          <div className="px-5 py-10">
-            <p className="text-sm text-[var(--ink-2)]">Nothing here yet.</p>
+          <div className="px-5 py-8">
+            <p className="text-sm font-bold text-[var(--ink)]">Nothing here yet.</p>
             <p className="mt-1 text-sm text-[var(--ink-3)]">
               Drop in a lecture or paste your notes to start a set.
             </p>
@@ -474,9 +469,12 @@ export default function Sidebar({
       </nav>
 
       <div className="flex items-center gap-2 border-t border-[var(--rule)] px-5 py-3">
-        <button onClick={onOpenSettings} className={`${footerButton} px-2.5`}>
+        <button
+          onClick={onOpenSettings}
+          className={`${footerButton} px-3`}
+        >
           <Settings size={14} />
-          Settings
+          SETTINGS
         </button>
 
         <button

@@ -101,7 +101,7 @@ export default function CardBrowser({ cards, onExit }: CardBrowserProps) {
               {/* Front */}
               <div
                 className="absolute inset-0 flex flex-col justify-between overflow-y-auto rounded-[4px] border border-[var(--ink)] bg-[var(--paper-2)] p-8"
-                style={{ backfaceVisibility: 'hidden', boxShadow: '5px 5px 0 var(--ink)' }}
+                style={{ backfaceVisibility: 'hidden' }}
               >
                 <span className="label">Question</span>
                 <p className="display my-6 text-xl leading-tight sm:text-2xl">{card.front}</p>
@@ -116,7 +116,6 @@ export default function CardBrowser({ cards, onExit }: CardBrowserProps) {
                 style={{
                   backfaceVisibility: 'hidden',
                   transform: 'rotateY(180deg)',
-                  boxShadow: '5px 5px 0 var(--ink-3)',
                 }}
               >
                 <span className="label" style={{ color: 'var(--ink-3)' }}>

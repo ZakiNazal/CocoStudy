@@ -6,16 +6,33 @@ export type AnswerState = 'unanswered' | 'answered' | 'correct' | 'wrong';
 /** -1 means the question has not been answered yet. */
 export const UNANSWERED = -1;
 
-export function isCorrect(question: QuizQuestion, answer: number): boolean {
-  return answer === question.correctAnswerIndex;
+export function isCorrect(question: QuizQuestion, answer: number | string): boolean {
+  if (question.type === 'essay') {
+    if (typeof answer === 'number') return answer === 1;
+    return typeof answer === 'string' && answer.trim().length > 0;
+  }
+  return typeof answer === 'number' && answer === question.correctAnswerIndex;
 }
 
-export function scoreQuiz(quiz: QuizQuestion[], answers: number[]): number {
+export function isAnswered(question: QuizQuestion, answer: number | string): boolean {
+  if (question.type === 'essay') {
+    return typeof answer === 'string' ? answer.trim().length > 0 : answer !== UNANSWERED;
+  }
+  return answer !== UNANSWERED;
+}
+
+export function scoreQuiz(quiz: QuizQuestion[], answers: (number | string)[]): number {
   return quiz.reduce((total, q, i) => total + (isCorrect(q, answers[i] ?? UNANSWERED) ? 1 : 0), 0);
 }
 
-export function unansweredCount(answers: number[]): number {
-  return answers.filter(a => a === UNANSWERED).length;
+export function unansweredCount(answers: (number | string)[], quiz?: QuizQuestion[]): number {
+  return answers.filter((a, i) => {
+    const q = quiz?.[i];
+    if (q && q.type === 'essay') {
+      return typeof a === 'string' ? a.trim().length === 0 : a === UNANSWERED;
+    }
+    return a === UNANSWERED || a === '';
+  }).length;
 }
 
 /**
@@ -25,10 +42,10 @@ export function unansweredCount(answers: number[]): number {
  */
 export function answerState(
   question: QuizQuestion,
-  answer: number,
+  answer: number | string,
   graded: boolean,
 ): AnswerState {
-  if (answer === UNANSWERED) return 'unanswered';
+  if (!isAnswered(question, answer)) return 'unanswered';
   if (!graded) return 'answered';
   return isCorrect(question, answer) ? 'correct' : 'wrong';
 }

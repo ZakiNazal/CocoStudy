@@ -60,6 +60,54 @@ Notes:
 ${summary.substring(0, 10000)}
 `;
 
+export const customQuizPrompt = (
+  summary: string,
+  options: { types: ('mcq' | 'true_false' | 'essay')[]; count: number },
+) => {
+  const typeGuidelines: string[] = [];
+  if (options.types.includes('mcq')) {
+    typeGuidelines.push(
+      '- Multiple Choice ("type": "mcq"): "question", "options" (array of 4 distinct choices), "correctAnswerIndex" (0-3), and "explanation".',
+    );
+  }
+  if (options.types.includes('true_false')) {
+    typeGuidelines.push(
+      '- True/False ("type": "true_false"): "question" (clear assertion to evaluate), "options": ["True", "False"], "correctAnswerIndex" (0 for True, 1 for False), and "explanation".',
+    );
+  }
+  if (options.types.includes('essay')) {
+    typeGuidelines.push(
+      '- Short Answer/Essay ("type": "essay"): "question" (conceptual prompt), "options": [], "correctAnswerIndex": 0, "sampleAnswer" (concise ideal 2-4 sentence explanation), "keyPoints" (array of 2-4 essential phrases/concepts to check), and "explanation".',
+    );
+  }
+
+  return `
+You are creating a comprehensive study quiz based on the notes below.
+Generate exactly ${options.count} question(s) matching the requested types:
+${typeGuidelines.join('\n')}
+
+Distribute the ${options.count} questions among the selected types (${options.types.join(', ')}).
+
+Return a valid JSON array of objects following this schema:
+[
+  {
+    "type": "mcq" | "true_false" | "essay",
+    "question": "string",
+    "options": ["string"],
+    "correctAnswerIndex": number,
+    "explanation": "string",
+    "sampleAnswer": "string",
+    "keyPoints": ["string"]
+  }
+]
+
+Do not use LaTeX or dollar signs. Plain characters only.
+
+Notes:
+${summary.substring(0, 10000)}
+`;
+};
+
 export const tutorSystemInstruction = (
   context: string,
 ) => `You are a dedicated and focused AI study assistant.

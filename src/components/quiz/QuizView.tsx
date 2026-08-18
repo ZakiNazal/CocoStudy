@@ -1,65 +1,131 @@
-import { useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useGSAP } from '@gsap/react';
-import { RotateCcw } from 'lucide-react';
+import { Check, Edit3, HelpCircle, ListChecks, RotateCcw, SlidersHorizontal, Sparkles, X } from 'lucide-react';
 import { gsap, DUR, EASE, STAGGER, shouldAnimate } from '../../lib/motion';
 import {
   UNANSWERED,
-  answerState,
+  isAnswered,
+  isCorrect,
   scoreInk,
-  scoreQuiz,
   scoreVerdict,
   unansweredCount,
 } from '../../lib/quiz';
 import { inkVar } from '../../lib/mastery';
+import { createQuiz } from '../../lib/quizGenerator';
 import TickStrip, { type TickTone } from '../ui/TickStrip';
-import type { QuizAttempt, QuizQuestion } from '../../types';
+import Banner from '../ui/Banner';
+import QuizCustomizeModal from './QuizCustomizeModal';
+import type { QuizAttempt, QuizOptions, QuizQuestion } from '../../types';
 
 export interface QuizRun {
-  answers: number[];
+  answers: (number | string)[];
   graded: boolean;
+  essayGrades?: Record<number, boolean>;
 }
 
 export function emptyRun(quiz: QuizQuestion[]): QuizRun {
-  return { answers: quiz.map(() => UNANSWERED), graded: false };
+  return {
+    answers: quiz.map(q => (q.type === 'essay' ? '' : UNANSWERED)),
+    graded: false,
+    essayGrades: {},
+  };
 }
 
 interface QuizViewProps {
   quiz: QuizQuestion[];
   attempts: QuizAttempt[];
-  /**
-   * Owned by the study shell, not by this component: switching to the notes
-   * for a moment must not throw away a part-finished quiz.
-   */
+  summary?: string;
   run: QuizRun;
   onRunChange: (run: QuizRun) => void;
   onSubmit: (attempt: QuizAttempt) => void;
+  onUpdateQuiz?: (newQuiz: QuizQuestion[]) => void;
 }
 
 const LETTERS = 'ABCDEFGH';
+const STORAGE_KEY = 'cocostudy_last_quiz_options';
 
 export default function QuizView({
   quiz,
   attempts,
+  summary = '',
   run,
   onRunChange,
   onSubmit,
+  onUpdateQuiz,
 }: QuizViewProps) {
-  const { answers, graded } = run;
+  const { answers, graded, essayGrades = {} } = run;
   const scroller = useRef<HTMLDivElement>(null);
   const result = useRef<HTMLDivElement>(null);
 
-  const quizKey = quiz.map(q => q.id).join('|');
-  const setAnswers = (next: number[]) => onRunChange({ answers: next, graded });
+  // Load last selected options from localStorage or defaults
+  const [options, setOptions] = useState<QuizOptions>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved) as QuizOptions;
+        if (parsed.types && parsed.types.length > 0 && parsed.count) {
+          return parsed;
+        }
+      }
+    } catch {
+      // ignore JSON error
+    }
+    return { types: ['mcq', 'true_false', 'essay'], count: 5 };
+  });
 
-  const score = useMemo(() => scoreQuiz(quiz, answers), [quiz, answers]);
-  const left = unansweredCount(answers);
+  const [isCustomizeOpen, setIsCustomizeOpen] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generationError, setGenerationError] = useState<string | null>(null);
+
+  // Check if opened for the first time
+  useEffect(() => {
+    if (quiz.length === 0) {
+      setIsCustomizeOpen(true);
+    }
+  }, [quiz.length]);
+
+  const quizKey = quiz.map(q => q.id).join('|');
+
+  const setAnswers = (next: (number | string)[]) =>
+    onRunChange({ answers: next, graded, essayGrades });
+
+  const setEssayGrade = (qIndex: number, pass: boolean) => {
+    const nextGrades = { ...essayGrades, [qIndex]: pass };
+    onRunChange({ answers, graded, essayGrades: nextGrades });
+  };
+
+  // Compute final effective score including essay self-grades
+  const score = useMemo(() => {
+    return quiz.reduce((total, q, i) => {
+      if (q.type === 'essay') {
+        // If graded and user marked pass/fail
+        if (essayGrades[i] !== undefined) {
+          return total + (essayGrades[i] ? 1 : 0);
+        }
+        return total + (isCorrect(q, answers[i] ?? '') ? 1 : 0);
+      }
+      return total + (isCorrect(q, answers[i] ?? UNANSWERED) ? 1 : 0);
+    }, 0);
+  }, [quiz, answers, essayGrades]);
+
+  const left = unansweredCount(answers, quiz);
   const ink = scoreInk(score, quiz.length);
 
   const ticks: TickTone[] = quiz.map((question, i) => {
-    const state = answerState(question, answers[i], graded);
-    if (state === 'unanswered') return 'empty';
-    if (state === 'answered') return 'ink';
-    return state === 'correct' ? 'green' : 'pink';
+    const ans = answers[i] ?? (question.type === 'essay' ? '' : UNANSWERED);
+    const answered = isAnswered(question, ans);
+
+    if (!answered) return 'empty';
+    if (!graded) return 'ink';
+
+    if (question.type === 'essay') {
+      if (essayGrades[i] !== undefined) {
+        return essayGrades[i] ? 'green' : 'pink';
+      }
+      return ans ? 'green' : 'pink';
+    }
+
+    return isCorrect(question, ans) ? 'green' : 'pink';
   });
 
   useGSAP(
@@ -84,21 +150,39 @@ export default function QuizView({
     { scope: scroller, dependencies: [quizKey] },
   );
 
-  if (quiz.length === 0) {
-    return (
-      <div className="flex h-full items-center justify-center px-6">
-        <div className="max-w-md text-center">
-          <p className="display text-xl">No quiz for this set.</p>
-          <p className="mt-2 text-[var(--ink-2)]">
-            Quizzes are written when a set is generated. Regenerate this set to get one.
-          </p>
-        </div>
-      </div>
-    );
-  }
+  const handleOptionsChange = (newOpts: QuizOptions) => {
+    setOptions(newOpts);
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(newOpts));
+    } catch {
+      // ignore
+    }
+  };
+
+  const handleGenerate = async (opts: QuizOptions) => {
+    setIsGenerating(true);
+    setGenerationError(null);
+    try {
+      const generated = await createQuiz(summary, opts);
+      if (generated && generated.length > 0) {
+        if (onUpdateQuiz) {
+          onUpdateQuiz(generated);
+        }
+        onRunChange(emptyRun(generated));
+        setIsCustomizeOpen(false);
+        scroller.current?.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        setGenerationError('Unable to generate quiz. Please try again.');
+      }
+    } catch (e) {
+      setGenerationError(e instanceof Error ? e.message : 'Quiz generation failed.');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   const submit = () => {
-    onRunChange({ answers, graded: true });
+    onRunChange({ answers, graded: true, essayGrades });
     onSubmit({
       id: `attempt-${Date.now()}`,
       takenAt: new Date().toISOString(),
@@ -108,26 +192,84 @@ export default function QuizView({
     scroller.current?.scrollTo({ top: 0, behavior: shouldAnimate() ? 'smooth' : 'auto' });
   };
 
-  const retake = () => {
+  const retakeSame = () => {
     onRunChange(emptyRun(quiz));
     scroller.current?.scrollTo({ top: 0, behavior: shouldAnimate() ? 'smooth' : 'auto' });
   };
 
+  const handleTryAgainWithModal = () => {
+    // Opens the customization popup with the exact options they picked the first time!
+    setIsCustomizeOpen(true);
+  };
+
   const best = attempts.reduce((max, a) => Math.max(max, a.score), 0);
+
+  if (quiz.length === 0) {
+    return (
+      <div className="flex h-full items-center justify-center px-6">
+        <div className="max-w-md text-center">
+          <Sparkles className="mx-auto text-[#0052FF]" size={28} />
+          <p className="display mt-3 text-xl font-bold">No quiz generated yet</p>
+          <p className="mt-2 text-sm text-[var(--ink-2)]">
+            Configure your question types and length to generate a personalized study quiz.
+          </p>
+          <button
+            onClick={() => setIsCustomizeOpen(true)}
+            className="mt-5 inline-flex items-center gap-2 rounded-[4px] bg-[#0052FF] px-5 py-2.5 font-mono text-xs font-semibold uppercase tracking-[0.08em] text-white hover:bg-[#0047E0]"
+          >
+            <Sparkles size={14} />
+            Customize & Generate
+          </button>
+        </div>
+
+        <QuizCustomizeModal
+          isOpen={isCustomizeOpen}
+          onClose={() => setIsCustomizeOpen(false)}
+          options={options}
+          onOptionsChange={handleOptionsChange}
+          onGenerate={handleGenerate}
+          isGenerating={isGenerating}
+          hasExistingQuiz={quiz.length > 0}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-full flex-col">
-      {/* Status rail — always visible, so progress never depends on a floating control. */}
+      {/* Customize Modal */}
+      <QuizCustomizeModal
+        isOpen={isCustomizeOpen}
+        onClose={() => setIsCustomizeOpen(false)}
+        options={options}
+        onOptionsChange={handleOptionsChange}
+        onGenerate={handleGenerate}
+        isGenerating={isGenerating}
+        hasExistingQuiz={quiz.length > 0}
+      />
+
+      {/* Status rail */}
       <div className="shrink-0 border-b border-[var(--rule)] bg-[var(--paper-2)] px-6 py-3 sm:px-10">
         <div className="mx-auto max-w-2xl">
           <div className="flex items-baseline justify-between gap-4">
-            <span className="label">{graded ? 'Marked' : 'Quiz'}</span>
+            <div className="flex items-center gap-3">
+              <span className="label">{graded ? 'Marked' : 'Quiz'}</span>
+              <button
+                onClick={() => setIsCustomizeOpen(true)}
+                className="inline-flex items-center gap-1.5 rounded-[4px] border border-[var(--rule)] bg-white dark:bg-[var(--paper)] px-2.5 py-1 font-mono text-2xs uppercase tracking-[0.08em] text-[var(--ink-2)] transition-colors hover:border-[#0052FF] hover:text-[#0052FF]"
+              >
+                <SlidersHorizontal size={11} />
+                <span>Customize</span>
+              </button>
+            </div>
+
             <span className="numeral text-2xs text-[var(--ink-3)]">
               {graded
                 ? `${score} of ${quiz.length} correct`
                 : `${quiz.length - left} of ${quiz.length} answered`}
             </span>
           </div>
+
           <TickStrip
             className="mt-2"
             ticks={ticks}
@@ -142,141 +284,312 @@ export default function QuizView({
 
       <div ref={scroller} className="min-h-0 flex-1 overflow-y-auto px-6 py-8 sm:px-10">
         <div className="mx-auto max-w-2xl">
+          {generationError && (
+            <div className="mb-6">
+              <Banner tone="error" onDismiss={() => setGenerationError(null)}>
+                {generationError}
+              </Banner>
+            </div>
+          )}
           {graded && (
             <div
               ref={result}
-              className="mb-10 border border-[var(--rule)] bg-[var(--paper-2)] p-6"
-              style={{ borderLeftWidth: 3, borderLeftColor: inkVar(ink) }}
+              className="mb-10 rounded-[6px] border border-[var(--rule)] bg-[var(--paper-2)] p-6"
+              style={{ borderLeftWidth: 4, borderLeftColor: inkVar(ink) }}
             >
-              <span className="label">Result</span>
-              <p className="display mt-2 text-3xl">
+              <div className="flex items-center justify-between">
+                <span className="label">Results</span>
+                <span className="numeral text-2xs font-semibold text-[var(--ink-3)]">
+                  {Math.round((score / quiz.length) * 100)}% Accuracy
+                </span>
+              </div>
+
+              <p className="display mt-2 text-3xl font-extrabold text-[var(--ink)]">
                 <span className="numeral">{score}</span>
                 <span className="text-[var(--ink-3)]">/{quiz.length}</span>
               </p>
               <p className="mt-2 text-sm text-[var(--ink-2)]">
                 {scoreVerdict(score, quiz.length)}
               </p>
+
               {attempts.length > 1 && (
                 <p className="numeral mt-3 text-2xs text-[var(--ink-3)]">
                   Best of {attempts.length} attempts: {best}/{quiz.length}
                 </p>
               )}
-              <button
-                onClick={retake}
-                className="mt-5 inline-flex items-center gap-2 rounded-[4px] bg-[var(--ink)] px-4 py-2 font-mono text-2xs font-semibold uppercase tracking-[0.1em] text-[var(--paper)] transition-transform duration-150 active:scale-[0.97]"
-              >
-                <RotateCcw size={13} />
-                Retake
-              </button>
+
+              {/* Action Buttons: Try Again (Pop-up with same settings) and Retake same */}
+              <div className="mt-6 flex flex-wrap items-center gap-3">
+                <button
+                  onClick={handleTryAgainWithModal}
+                  className="inline-flex items-center gap-2 rounded-[4px] bg-[#0052FF] px-4 py-2 font-mono text-2xs font-semibold uppercase tracking-[0.1em] text-white transition-all hover:bg-[#0047E0] active:scale-[0.98]"
+                >
+                  <Sparkles size={13} />
+                  Try Again (New Questions)
+                </button>
+
+                <button
+                  onClick={retakeSame}
+                  className="inline-flex items-center gap-2 rounded-[4px] border border-[var(--rule)] bg-[var(--paper)] px-4 py-2 font-mono text-2xs font-semibold uppercase tracking-[0.1em] text-[var(--ink)] transition-colors hover:border-[var(--ink)] active:scale-[0.98]"
+                >
+                  <RotateCcw size={13} />
+                  Retake Same
+                </button>
+              </div>
             </div>
           )}
 
           <ol className="space-y-12">
             {quiz.map((question, qi) => {
-              const state = answerState(question, answers[qi], graded);
+              const currentAnswer = answers[qi] ?? (question.type === 'essay' ? '' : UNANSWERED);
+              const qType = question.type || 'mcq';
 
               return (
                 <li key={question.id} data-question>
                   <div className="flex gap-4">
-                    {/* Numerals earn their place here: quiz order is real order. */}
+                    {/* Question Number */}
                     <span
-                      className="numeral shrink-0 pt-1 text-sm"
+                      className="numeral shrink-0 pt-1 font-mono text-sm font-bold"
                       style={{
-                        color: state === 'unanswered' ? 'var(--ink-3)' : 'var(--ink)',
+                        color: !isAnswered(question, currentAnswer)
+                          ? 'var(--ink-3)'
+                          : 'var(--ink)',
                       }}
                     >
                       {String(qi + 1).padStart(2, '0')}
                     </span>
 
                     <div className="min-w-0 flex-1">
+                      {/* Badge for Type */}
+                      <div className="mb-2 flex items-center gap-2">
+                        {qType === 'mcq' && (
+                          <span className="inline-flex items-center gap-1 rounded-[3px] bg-[var(--paper-3)] px-1.5 py-0.5 font-mono text-2xs text-[var(--ink-3)]">
+                            <ListChecks size={10} /> Multiple Choice
+                          </span>
+                        )}
+                        {qType === 'true_false' && (
+                          <span className="inline-flex items-center gap-1 rounded-[3px] bg-[var(--paper-3)] px-1.5 py-0.5 font-mono text-2xs text-[var(--ink-3)]">
+                            <HelpCircle size={10} /> True / False
+                          </span>
+                        )}
+                        {qType === 'essay' && (
+                          <span className="inline-flex items-center gap-1 rounded-[3px] bg-[#0052FF]/10 px-1.5 py-0.5 font-mono text-2xs font-semibold text-[#0052FF]">
+                            <Edit3 size={10} /> Essay / Short Answer
+                          </span>
+                        )}
+                      </div>
+
                       <fieldset>
                         <legend className="text-base font-semibold leading-snug text-[var(--ink)]">
                           {question.question}
                         </legend>
 
-                        <div className="mt-4 space-y-2">
-                          {question.options.map((option, oi) => {
-                            const picked = answers[qi] === oi;
-                            const correct = oi === question.correctAnswerIndex;
+                        {/* --- RENDER 1: Multiple Choice Options --- */}
+                        {qType === 'mcq' && (
+                          <div className="mt-4 space-y-2">
+                            {question.options.map((option, oi) => {
+                              const picked = currentAnswer === oi;
+                              const correct = oi === question.correctAnswerIndex;
 
-                            // Before marking: only "picked" reads differently.
-                            // After marking: the right answer is always shown,
-                            // and a wrong pick is marked in learning pink.
-                            let border = 'var(--rule)';
-                            let wash: string | undefined;
-                            let text = 'var(--ink-2)';
-                            let chipBg = 'transparent';
-                            let chipText = 'var(--ink-3)';
+                              let border = 'var(--rule)';
+                              let wash: string | undefined;
+                              let text = 'var(--ink-2)';
+                              let chipBg = 'transparent';
+                              let chipText = 'var(--ink-3)';
 
-                            if (graded) {
-                              if (correct) {
-                                border = 'var(--ink)';
-                                wash = 'var(--green-wash)';
-                                text = 'var(--ink)';
-                                chipBg = 'var(--ink)';
-                                chipText = 'var(--paper)';
+                              if (graded) {
+                                if (correct) {
+                                  border = 'var(--ink)';
+                                  wash = 'var(--green-wash)';
+                                  text = 'var(--ink)';
+                                  chipBg = 'var(--ink)';
+                                  chipText = 'var(--paper)';
+                                } else if (picked) {
+                                  border = 'var(--ink)';
+                                  wash = 'var(--pink-wash)';
+                                  text = 'var(--ink)';
+                                  chipBg = 'var(--ink)';
+                                  chipText = 'var(--paper)';
+                                } else {
+                                  text = 'var(--ink-3)';
+                                }
                               } else if (picked) {
                                 border = 'var(--ink)';
-                                wash = 'var(--pink-wash)';
                                 text = 'var(--ink)';
                                 chipBg = 'var(--ink)';
                                 chipText = 'var(--paper)';
-                              } else {
-                                text = 'var(--ink-3)';
                               }
-                            } else if (picked) {
-                              border = 'var(--ink)';
-                              text = 'var(--ink)';
-                              chipBg = 'var(--ink)';
-                              chipText = 'var(--paper)';
-                            }
 
-                            return (
-                              <button
-                                key={oi}
-                                type="button"
-                                role="radio"
-                                aria-checked={picked}
-                                disabled={graded}
-                                onClick={() => {
-                                  const next = [...answers];
-                                  next[qi] = oi;
-                                  setAnswers(next);
-                                }}
-                                className={`flex w-full items-start gap-3 rounded-[4px] border px-4 py-3 text-left text-sm transition-[border-color,background-color,color] duration-150 ${
-                                  graded ? 'cursor-default' : 'hover:border-[var(--ink-3)]'
-                                }`}
-                                style={{ borderColor: border, background: wash, color: text }}
-                              >
-                                <span
-                                  aria-hidden="true"
-                                  className="numeral mt-px flex h-5 w-5 shrink-0 items-center justify-center rounded-[2px] text-2xs font-bold transition-colors duration-150"
-                                  style={{ background: chipBg, color: chipText }}
+                              return (
+                                <button
+                                  key={oi}
+                                  type="button"
+                                  role="radio"
+                                  aria-checked={picked}
+                                  disabled={graded}
+                                  onClick={() => {
+                                    const next = [...answers];
+                                    next[qi] = oi;
+                                    setAnswers(next);
+                                  }}
+                                  className={`flex w-full items-start gap-3 rounded-[4px] border px-4 py-3 text-left text-sm transition-[border-color,background-color,color] duration-150 ${
+                                    graded ? 'cursor-default' : 'hover:border-[var(--ink-3)]'
+                                  }`}
+                                  style={{ borderColor: border, background: wash, color: text }}
                                 >
-                                  {LETTERS[oi]}
-                                </span>
-                                <span className="flex-1 leading-snug">{option}</span>
-                              </button>
-                            );
-                          })}
-                        </div>
+                                  <span
+                                    aria-hidden="true"
+                                    className="numeral flex h-5 w-5 shrink-0 items-center justify-center rounded-[2px] border text-2xs font-semibold"
+                                    style={{
+                                      borderColor: border,
+                                      background: chipBg,
+                                      color: chipText,
+                                    }}
+                                  >
+                                    {LETTERS[oi] ?? String(oi + 1)}
+                                  </span>
+                                  <span className="flex-1 leading-snug">{option}</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
+
+                        {/* --- RENDER 2: True / False Buttons --- */}
+                        {qType === 'true_false' && (
+                          <div className="mt-4 grid grid-cols-2 gap-3">
+                            {['True', 'False'].map((label, oi) => {
+                              const picked = currentAnswer === oi;
+                              const correct = oi === question.correctAnswerIndex;
+
+                              let border = 'var(--rule)';
+                              let wash: string | undefined;
+                              let text = 'var(--ink-2)';
+
+                              if (graded) {
+                                if (correct) {
+                                  border = 'var(--ink)';
+                                  wash = 'var(--green-wash)';
+                                  text = 'var(--ink)';
+                                } else if (picked) {
+                                  border = 'var(--ink)';
+                                  wash = 'var(--pink-wash)';
+                                  text = 'var(--ink)';
+                                } else {
+                                  text = 'var(--ink-3)';
+                                }
+                              } else if (picked) {
+                                border = '#0052FF';
+                                wash = '#0052FF10';
+                                text = 'var(--ink)';
+                              }
+
+                              return (
+                                <button
+                                  key={label}
+                                  type="button"
+                                  disabled={graded}
+                                  onClick={() => {
+                                    const next = [...answers];
+                                    next[qi] = oi;
+                                    setAnswers(next);
+                                  }}
+                                  className={`flex items-center justify-center gap-2 rounded-[4px] border py-3 px-4 font-mono text-sm font-bold transition-all ${
+                                    graded ? 'cursor-default' : 'hover:border-[var(--ink-3)]'
+                                  }`}
+                                  style={{ borderColor: border, background: wash, color: text }}
+                                >
+                                  {label}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
+
+                        {/* --- RENDER 3: Essay / Short Answer --- */}
+                        {qType === 'essay' && (
+                          <div className="mt-4 space-y-3">
+                            <textarea
+                              rows={3}
+                              disabled={graded}
+                              value={typeof currentAnswer === 'string' ? currentAnswer : ''}
+                              onChange={e => {
+                                const next = [...answers];
+                                next[qi] = e.target.value;
+                                setAnswers(next);
+                              }}
+                              placeholder="Type your explanation or response in your own words..."
+                              className="w-full rounded-[4px] border border-[var(--rule)] bg-white dark:bg-[var(--paper-2)] p-3 text-sm leading-relaxed text-[var(--ink)] placeholder:text-[var(--ink-3)] focus:border-[#0052FF] focus:outline-none disabled:bg-[var(--paper-3)]"
+                            />
+
+                            {/* When graded, show Sample Answer, Key Points and Self-Grading */}
+                            {graded && (
+                              <div className="rounded-[6px] border border-[var(--rule)] bg-[var(--paper-3)]/60 p-4 space-y-3">
+                                {question.sampleAnswer && (
+                                  <div>
+                                    <span className="font-mono text-2xs font-bold uppercase tracking-[0.08em] text-[#0052FF]">
+                                      Model / Sample Answer
+                                    </span>
+                                    <p className="mt-1 text-sm leading-relaxed text-[var(--ink)]">
+                                      {question.sampleAnswer}
+                                    </p>
+                                  </div>
+                                )}
+
+                                {question.keyPoints && question.keyPoints.length > 0 && (
+                                  <div>
+                                    <span className="font-mono text-2xs font-bold uppercase tracking-[0.08em] text-[var(--ink-3)]">
+                                      Key Points to Check
+                                    </span>
+                                    <ul className="mt-1 list-disc space-y-1 pl-4 text-xs text-[var(--ink-2)]">
+                                      {question.keyPoints.map((kp, kpi) => (
+                                        <li key={kpi}>{kp}</li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                )}
+
+                                {/* Self-Evaluation Check */}
+                                <div className="pt-2 border-t border-[var(--rule)] flex items-center justify-between">
+                                  <span className="font-mono text-2xs text-[var(--ink-3)]">
+                                    Self-Evaluation:
+                                  </span>
+                                  <div className="flex items-center gap-2">
+                                    <button
+                                      type="button"
+                                      onClick={() => setEssayGrade(qi, true)}
+                                      className={`inline-flex items-center gap-1 rounded-[3px] border px-2.5 py-1 font-mono text-2xs font-semibold transition-colors ${
+                                        essayGrades[qi] === true
+                                          ? 'border-[var(--green)] bg-[var(--green-wash)] text-[var(--ink)]'
+                                          : 'border-[var(--rule)] bg-white dark:bg-[var(--paper)] text-[var(--ink-2)] hover:border-[var(--green)]'
+                                      }`}
+                                    >
+                                      <Check size={12} /> Got It
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => setEssayGrade(qi, false)}
+                                      className={`inline-flex items-center gap-1 rounded-[3px] border px-2.5 py-1 font-mono text-2xs font-semibold transition-colors ${
+                                        essayGrades[qi] === false
+                                          ? 'border-[var(--pink)] bg-[var(--pink-wash)] text-[var(--ink)]'
+                                          : 'border-[var(--rule)] bg-white dark:bg-[var(--paper)] text-[var(--ink-2)] hover:border-[var(--pink)]'
+                                      }`}
+                                    >
+                                      <X size={12} /> Review
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </fieldset>
 
+                      {/* Explanation displayed after grading */}
                       {graded && question.explanation && (
-                        <div
-                          className="mt-4 border-l-2 pl-4"
-                          style={{
-                            borderLeftColor:
-                              state === 'correct' ? 'var(--green)' : 'var(--pink)',
-                          }}
-                        >
-                          <span className="label">
-                            {state === 'correct' ? 'Why that is right' : 'Why you missed it'}
-                          </span>
-                          <p className="mt-1 text-sm leading-relaxed text-[var(--ink-2)]">
-                            {question.explanation}
-                          </p>
-                        </div>
+                        <p className="mt-3 text-xs leading-relaxed text-[var(--ink-2)]">
+                          {question.explanation}
+                        </p>
                       )}
                     </div>
                   </div>
@@ -285,29 +598,24 @@ export default function QuizView({
             })}
           </ol>
 
-          <div className="h-8" />
+          {/* Submit button when not graded */}
+          {!graded && (
+            <div className="mt-12 flex items-center justify-between border-t border-[var(--rule)] pt-6">
+              <span className="font-mono text-2xs text-[var(--ink-3)]">
+                {left > 0 ? `${left} unanswered remaining` : 'All questions answered'}
+              </span>
+
+              <button
+                onClick={submit}
+                disabled={left === quiz.length}
+                className="inline-flex items-center gap-2 rounded-[4px] bg-[#0052FF] px-6 py-2.5 font-mono text-2xs font-semibold uppercase tracking-[0.1em] text-white transition-all hover:bg-[#0047E0] active:scale-[0.98] disabled:opacity-50"
+              >
+                Submit Quiz
+              </button>
+            </div>
+          )}
         </div>
       </div>
-
-      {/* Solid footer, not a floating ghost. It states what is missing. */}
-      {!graded && (
-        <div className="shrink-0 border-t border-[var(--rule)] bg-[var(--paper-2)] px-6 py-4 sm:px-10">
-          <div className="mx-auto flex max-w-2xl flex-wrap items-center justify-between gap-x-4 gap-y-3">
-            <p className="min-w-0 text-xs text-[var(--ink-2)]">
-              {left === 0
-                ? 'Every question answered.'
-                : `${left} ${left === 1 ? 'question' : 'questions'} still to answer.`}
-            </p>
-            <button
-              onClick={submit}
-              disabled={left > 0}
-              className="shrink-0 rounded-[4px] bg-[var(--ink)] px-6 py-2.5 font-mono text-xs font-semibold uppercase tracking-[0.1em] text-[var(--paper)] transition-[background-color,transform] duration-150 hover:bg-[var(--ink-2)] active:scale-[0.97] disabled:cursor-not-allowed disabled:bg-[var(--ink-3)] disabled:active:scale-100"
-            >
-              Check answers
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
