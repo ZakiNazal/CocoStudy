@@ -31,18 +31,28 @@ export interface Flashcard {
   srs: SrsState;
 }
 
+export type QuestionType = 'mcq' | 'true_false' | 'essay';
+
+export interface QuizOptions {
+  types: QuestionType[];
+  count: number;
+}
+
 export interface QuizQuestion {
   id: string;
+  type?: QuestionType;
   question: string;
   options: string[];
   correctAnswerIndex: number;
   explanation: string;
+  sampleAnswer?: string;
+  keyPoints?: string[];
 }
 
 export interface QuizAttempt {
   id: string;
   takenAt: string;
-  answers: number[];
+  answers: (number | string)[];
   score: number;
 }
 

@@ -199,7 +199,6 @@ export default function ReviewSession({ cards, onGrade, onBrowse }: ReviewSessio
           <div
             data-card
             className="rounded-[4px] border border-[var(--ink)] bg-[var(--paper-2)]"
-            style={{ boxShadow: '5px 5px 0 var(--ink)' }}
           >
             <div className="flex items-center justify-between border-b border-[var(--rule)] px-6 py-2">
               <span className="label">Question</span>

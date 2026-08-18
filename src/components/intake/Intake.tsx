@@ -2,7 +2,6 @@ import { useRef, useState } from 'react';
 import { useGSAP } from '@gsap/react';
 import { FileText, Mic, Sparkles, Upload } from 'lucide-react';
 import { gsap, DUR, EASE, STAGGER, shouldAnimate } from '../../lib/motion';
-import Highlight from '../ui/Highlight';
 import Banner from '../ui/Banner';
 import Ritual from './Ritual';
 import type { ProcessingStatus } from '../../types';
@@ -70,47 +69,57 @@ export default function Intake({ onProcess, onLoadDemo, hasSets, status }: Intak
 
   return (
     <div ref={root} className="h-full overflow-y-auto">
-      <div className="mx-auto max-w-3xl px-6 py-16 sm:px-10">
-        {/* Hero — the thesis. A ruled sheet with the headline set into it. */}
-        <header data-reveal className="border border-[var(--rule)] bg-[var(--paper-2)]">
+      <div className="mx-auto max-w-3xl px-6 py-12 sm:px-10">
+        {/* Hero — the thesis */}
+        <header data-reveal className="border border-[var(--rule)] bg-white dark:bg-[var(--paper-2)]">
           <div className="flex items-center justify-between border-b border-[var(--rule)] px-6 py-2">
-            <span className="label">New study set</span>
-            <span className="label">Untitled</span>
+            <span className="text-2xs font-bold uppercase tracking-[0.1em] text-[var(--ink)]">
+              New study set
+            </span>
+            <span className="text-2xs font-bold uppercase tracking-[0.1em] text-[var(--ink)]">
+              Untitled
+            </span>
           </div>
 
-          <div className="px-6 py-10 sm:px-10 sm:py-14">
-            <h2 className="display display-xl text-3xl sm:text-4xl">
+          <div className="px-6 py-10 sm:px-10 sm:py-12">
+            <h2 className="display display-xl text-3xl sm:text-4xl font-extrabold text-[#0052FF] leading-[1.08]">
               Read it once.
               <br />
-              <Highlight ink="yellow" coverage={1} delay={0.35}>
-                Know it
-              </Highlight>{' '}
-              for good.
+              <span className="relative inline-block mt-0.5">
+                <span
+                  aria-hidden="true"
+                  className="absolute inset-0 bg-[#FEF08A] dark:bg-[#55501F] z-0 -mx-1 px-1"
+                />
+                <span className="relative z-10 text-[#0052FF]">Know it</span>
+              </span>{' '}
+              <span className="text-[#0052FF]">for good.</span>
             </h2>
 
-            <p className="mt-6 max-w-md text-[var(--ink-2)]">
+            <p className="mt-6 max-w-xl text-sm leading-relaxed text-[var(--ink-2)]">
               Drop in a lecture recording, a slide deck, or your own messy notes. You get a
               study guide, cards on a review schedule, and a tutor that has read all of it.
             </p>
           </div>
 
-          {/* Legend — teaches the colour system before it carries data. */}
-          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-[var(--rule)] px-6 py-3">
-            <span className="label">Ink means</span>
+          {/* Legend */}
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-[var(--rule)] px-6 py-3">
+            <span className="text-2xs font-bold uppercase tracking-[0.1em] text-[var(--ink)]">
+              Ink means
+            </span>
             {(
               [
-                ['pink', 'Learning'],
-                ['yellow', 'Reviewing'],
-                ['green', 'Mastered'],
+                ['pink', 'Learning', 'var(--pink)'],
+                ['yellow', 'Reviewing', 'var(--yellow)'],
+                ['green', 'Mastered', 'var(--green)'],
               ] as const
-            ).map(([ink, meaning]) => (
-              <span key={ink} className="flex items-center gap-1.5">
+            ).map(([ink, meaning, color]) => (
+              <span key={ink} className="flex items-center gap-2">
                 <span
                   aria-hidden="true"
-                  className="h-2.5 w-5"
-                  style={{ background: `var(--${ink})` }}
+                  className="h-2.5 w-5 rounded-[1px]"
+                  style={{ background: color }}
                 />
-                <span className="numeral text-2xs text-[var(--ink-2)]">{meaning}</span>
+                <span className="text-2xs font-medium text-[var(--ink-2)]">{meaning}</span>
               </span>
             ))}
           </div>
@@ -119,16 +128,16 @@ export default function Intake({ onProcess, onLoadDemo, hasSets, status }: Intak
         {!hasSets && (
           <div
             data-reveal
-            className="mt-4 flex flex-wrap items-center justify-between gap-3 border border-[var(--rule)] px-6 py-4"
+            className="mt-6 flex flex-wrap items-center justify-between gap-4 border border-[var(--rule)] bg-transparent dark:bg-[var(--paper-2)]/40 px-6 py-4"
           >
             <p className="text-sm text-[var(--ink-2)]">
               Want to look around first? Load a worked example — no API key needed.
             </p>
             <button
               onClick={onLoadDemo}
-              className="flex shrink-0 items-center gap-2 border border-[var(--ink)] px-4 py-2 font-mono text-2xs uppercase tracking-[0.1em] text-[var(--ink)] transition-[background-color,color,transform] duration-150 hover:bg-[var(--ink)] hover:text-[var(--paper)] active:scale-[0.97]"
+              className="flex shrink-0 items-center gap-2 border border-[var(--ink)] bg-transparent px-4 py-2 text-xs font-bold text-[var(--ink)] transition-[background-color,color,transform] duration-150 hover:bg-[var(--ink)] hover:text-white active:scale-[0.98]"
             >
-              <Sparkles size={13} />
+              <Sparkles size={14} />
               Open the demo set
             </button>
           </div>
@@ -138,17 +147,17 @@ export default function Intake({ onProcess, onLoadDemo, hasSets, status }: Intak
         <div data-reveal className="mt-10 flex border-b border-[var(--rule)]">
           {(
             [
-              ['file', 'Upload a file', Upload],
-              ['text', 'Paste text', FileText],
+              ['file', 'Upload File', Upload],
+              ['text', 'Write a Text', FileText],
             ] as const
           ).map(([value, label, Icon]) => (
             <button
               key={value}
               onClick={() => setMode(value)}
               aria-pressed={mode === value}
-              className={`-mb-px flex items-center gap-2 border-b-2 px-4 py-3 font-mono text-xs uppercase tracking-[0.1em] transition-colors duration-150 ${
+              className={`-mb-px flex items-center gap-2 border-b-2 px-5 py-3 text-xs font-semibold transition-colors duration-150 ${
                 mode === value
-                  ? 'border-[var(--ink)] text-[var(--ink)]'
+                  ? 'border-[#0052FF] text-[#0052FF]'
                   : 'border-transparent text-[var(--ink-3)] hover:text-[var(--ink-2)]'
               }`}
             >
@@ -187,11 +196,7 @@ export default function Intake({ onProcess, onLoadDemo, hasSets, status }: Intak
                 role="button"
                 tabIndex={0}
                 aria-label="Choose a file to upload, or drop one here"
-                className="cursor-pointer border-2 border-dashed px-8 py-16 text-center transition-colors duration-150"
-                style={{
-                  borderColor: dragging ? 'var(--ink)' : 'var(--rule)',
-                  background: dragging ? 'var(--yellow-wash)' : 'transparent',
-                }}
+                className="cursor-pointer border-2 border-dashed border-[#0052FF] bg-[#F5F8FF]/30 dark:bg-[#0052FF]/5 px-8 py-16 text-center transition-colors duration-150 hover:bg-[#F0F5FF]/60"
               >
                 <input
                   ref={fileInput}
@@ -205,7 +210,7 @@ export default function Intake({ onProcess, onLoadDemo, hasSets, status }: Intak
                   }}
                 />
 
-                <p className="display text-xl">
+                <p className="display text-2xl font-bold text-[#0052FF]">
                   {dragging ? 'Let go' : 'Drop a file here'}
                 </p>
                 <p className="mt-2 text-sm text-[var(--ink-2)]">
@@ -214,7 +219,7 @@ export default function Intake({ onProcess, onLoadDemo, hasSets, status }: Intak
 
                 <div className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
                   {['PDF', 'DOCX', 'PPTX', 'MP3', 'M4A', 'MP4'].map(ext => (
-                    <span key={ext} className="numeral text-2xs text-[var(--ink-3)]">
+                    <span key={ext} className="numeral text-2xs text-[var(--ink-3)] font-semibold">
                       {ext}
                     </span>
                   ))}
@@ -244,7 +249,7 @@ export default function Intake({ onProcess, onLoadDemo, hasSets, status }: Intak
                 value={text}
                 onChange={e => setText(e.target.value)}
                 placeholder="Paste anything you need to learn. Markdown works."
-                className="ruled mt-2 h-64 w-full resize-none border border-[var(--rule)] bg-[var(--paper-2)] px-4 py-[0.4rem] leading-[1.6rem] text-[var(--ink)] placeholder:text-[var(--ink-3)] focus:border-[var(--ink)] focus:outline-none"
+                className="ruled mt-2 h-64 w-full resize-none border border-[var(--rule)] bg-white dark:bg-[var(--paper-2)] px-4 py-[0.4rem] leading-[1.6rem] text-[var(--ink)] placeholder:text-[var(--ink-3)] focus:border-[#0052FF] focus:outline-none"
               />
               <div className="mt-4 flex items-center justify-between">
                 <span className="numeral text-2xs text-[var(--ink-3)]">
@@ -253,7 +258,7 @@ export default function Intake({ onProcess, onLoadDemo, hasSets, status }: Intak
                 <button
                   onClick={() => text.trim() && onProcess(text)}
                   disabled={!text.trim()}
-                  className="h-11 rounded-[4px] bg-[var(--ink)] px-6 font-mono text-xs font-semibold uppercase tracking-[0.1em] text-[var(--paper)] transition-[background-color,transform] duration-150 hover:bg-[var(--ink-2)] active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-40 disabled:active:scale-100"
+                  className="h-10 rounded-[6px] bg-[#0052FF] px-6 text-xs font-semibold text-white transition-[background-color,transform] duration-150 hover:bg-[#0042D1] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   Make a study set
                 </button>

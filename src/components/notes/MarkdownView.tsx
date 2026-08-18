@@ -111,12 +111,12 @@ const components: Components = {
     </blockquote>
   ),
   code: ({ children }) => (
-    <code className="numeral bg-[var(--paper-3)] px-1.5 py-0.5 text-[0.85em] text-[var(--ink)]">
+    <code className="font-mono text-[0.875em] bg-[var(--paper-3)] px-1.5 py-0.5 text-[var(--ink)]">
       {children}
     </code>
   ),
   pre: ({ children }) => (
-    <pre className="mt-5 overflow-x-auto border border-[var(--rule)] bg-[var(--paper-3)] p-4 font-mono text-xs leading-relaxed">
+    <pre className="my-5 overflow-x-auto bg-[var(--paper-3)] p-4 font-mono text-xs sm:text-sm leading-relaxed text-[var(--ink)]">
       {children}
     </pre>
   ),

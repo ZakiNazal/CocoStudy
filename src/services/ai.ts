@@ -3,11 +3,11 @@ import { newCardState } from '../lib/srs';
 import { getMeta } from '../lib/db';
 import { describeAiError, type AiErrorKind } from '../lib/apierror';
 import type { ExtractedInput } from '../lib/extract';
-import type { ChatMessage, Flashcard, QuizQuestion } from '../types';
+import type { ChatMessage, Flashcard, QuizQuestion, QuizOptions } from '../types';
 import {
   SUMMARY_PROMPT,
   flashcardPrompt,
-  quizPrompt,
+  customQuizPrompt,
   tutorSystemInstruction,
   imagePrompt,
 } from './prompts';
@@ -148,10 +148,17 @@ export async function generateFlashcards(summary: string): Promise<Flashcard[]> 
 }
 
 export async function generateQuiz(summary: string): Promise<QuizQuestion[]> {
+  return generateCustomQuiz(summary, { types: ['mcq'], count: 5 });
+}
+
+export async function generateCustomQuiz(
+  summary: string,
+  options: QuizOptions,
+): Promise<QuizQuestion[]> {
   try {
     const response = await (await ai()).models.generateContent({
       model: MODEL,
-      contents: quizPrompt(summary),
+      contents: customQuizPrompt(summary, options),
       config: {
         responseMimeType: 'application/json',
         responseSchema: {
@@ -159,12 +166,15 @@ export async function generateQuiz(summary: string): Promise<QuizQuestion[]> {
           items: {
             type: 'object',
             properties: {
+              type: { type: 'string', enum: ['mcq', 'true_false', 'essay'] },
               question: { type: 'string' },
               options: { type: 'array', items: { type: 'string' } },
               correctAnswerIndex: { type: 'integer' },
               explanation: { type: 'string' },
+              sampleAnswer: { type: 'string' },
+              keyPoints: { type: 'array', items: { type: 'string' } },
             },
-            required: ['question', 'options', 'correctAnswerIndex', 'explanation'],
+            required: ['type', 'question', 'options', 'correctAnswerIndex', 'explanation'],
           },
         },
       },
