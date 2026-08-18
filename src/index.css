@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *, .dark, .dark *));
+
 /* ===================================================================
    MARKED UP
    Ink is data. A term never seen is bare graphite; one being learned is
