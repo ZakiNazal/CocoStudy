@@ -34,6 +34,7 @@
 - **Grounded AI Tutor**: A focused conversational tutor that answers strictly from your course material, explains complex concepts simply, and challenges your understanding.
 - **100% Private & Offline-First**: All data, flashcards, study sets, and progress are stored entirely inside your browser via IndexedDB. Your Gemini API key never leaves your device.
 
+[**cocostudy.vercel.app**](https://cocostudy.vercel.app/)
 ---
 
 ## 📸 App Showcase
@@ -78,9 +79,9 @@ Hand-crafted paper aesthetics and dark mode designed for high contrast and comfo
 
 <img src="docs/screenshots/dark_mode_view.png" alt="CocoStudy Dark Mode" width="100%" />
 
----
+**Cards** are generated from the guide, and each one remembers which phrase in your notes it teaches, so the notes highlight themselves as you learn.
 
-## 🚀 Getting Started
+**Quiz** is five questions with an explanation for every answer, including the ones you got right. Attempts are kept.
 
 ### Quick Start (No Key Required for Demo)
 Open the app and click on the pre-loaded demo study set **Spaced Repetition and the Forgetting Curve** to explore all features instantly without an account or API key.
@@ -91,7 +92,7 @@ For generating new study sets from your own files and lectures, add a Google Gem
 2. Open **Settings** (bottom-left gear icon) in CocoStudy and paste your key.
 3. Your key is stored securely in your browser's local storage and only used for direct requests to Google's API.
 
----
+Four grades: again, hard, good, easy. Each card has an ease factor starting at 2.5 that drifts between 1.3 and 2.8 depending on how you answer. Get one wrong and it comes back in ten minutes, not tomorrow. Intervals grow from there and stop at a year.
 
 ## 💻 Local Development
 
@@ -124,7 +125,7 @@ Visit `http://localhost:5173` in your browser.
 | `npm run build` | Type-checks with `tsc` and creates production bundle |
 | `npm run preview` | Previews the production build locally |
 
----
+The bar under each set in the sidebar is the whole deck in those inks, so you can read the state of a set without opening it.
 
 ## 🧠 How Spaced Repetition Works
 
@@ -154,7 +155,19 @@ CocoStudy implements an adaptive SM-2 spaced repetition algorithm:
 - **AI Models**: Google Gemini 2.5 Flash / Pro via `@google/genai`
 - **Testing**: Vitest, React Testing Library
 
----
+## Your data
+
+All of it lives in IndexedDB on your machine. No account, no upload, and closing the tab costs you nothing.
+
+Settings exports a JSON file of every set and all your progress, minus the API key, on the theory that an export is a thing people email to themselves. There's also a wipe.
+
+## Built with
+
+React 19, TypeScript, Tailwind v4, Vite. GSAP for motion, react-markdown with remark-gfm and KaTeX, idb for storage, mammoth and jszip for reading documents, Gemini for generation.
+
+Bricolage Grotesque for display, Source Serif 4 for reading, Martian Mono for anything that's data or a label. Light and dark are both chosen, never inherited from the OS.
+
+## License
 
 ## 🔒 Privacy & Data Sovereignty
 
