@@ -85,12 +85,12 @@ export default function Intake({ onProcess, onLoadDemo, hasSets, status }: Intak
             <h2 className="display display-xl text-3xl sm:text-4xl font-extrabold text-[#0052FF] leading-[1.08]">
               Read it once.
               <br />
-              <span className="relative inline-block mt-0.5">
+              <span className="relative inline-block mt-1">
                 <span
                   aria-hidden="true"
-                  className="absolute inset-0 bg-[var(--yellow-wash)] z-0 -mx-1 px-1"
+                  className="absolute inset-0 bg-[#FEF08A] z-0 -mx-1 px-1 rounded-[2px]"
                 />
-                <span className="relative z-10 text-[#0052FF]">Know it</span>
+                <span className="relative z-10 text-[#0052FF] font-black">Know it</span>
               </span>{' '}
               <span className="text-[#0052FF]">for good.</span>
             </h2>
