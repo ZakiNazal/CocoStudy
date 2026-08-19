@@ -1,7 +1,6 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import '@fontsource-variable/bricolage-grotesque';
-import '@fontsource-variable/source-serif-4';
 import '@fontsource-variable/martian-mono';
 import { Analytics } from '@vercel/analytics/react';
 import App from './App';

@@ -5,7 +5,9 @@
 
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- `viewport-fit=cover` is what makes env(safe-area-inset-*) report anything
+       other than zero, so the bottom bars can clear the home indicator. -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="description" content="CocoStudy - Your AI-powered study companion" />
   <meta name="author" content="Zaki Nazzal" />
   <meta name="keywords" content="AI, study companion, flashcards, quiz, notes, education, learning" />

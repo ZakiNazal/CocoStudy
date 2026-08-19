@@ -67,18 +67,23 @@ export default function StudySession({
   return (
     <div className="flex h-full flex-col">
       <header className="shrink-0 border-b border-[var(--rule)] bg-[var(--paper-2)]">
-        <div className="flex items-start gap-3 px-6 pb-3 pl-16 pt-5 md:pl-6">
+        <div className="flex items-start gap-3 px-4 pb-3 pl-16 pt-4 sm:px-6 md:pl-6 md:pt-5">
           <button
             onClick={onBack}
             aria-label="Back to library"
-            className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-[4px] border border-[var(--rule)] text-[var(--ink-2)] transition-colors hover:border-[var(--ink)] hover:text-[var(--ink)]"
+            className="-ml-1 mt-0 flex h-10 w-10 shrink-0 items-center justify-center rounded-[4px] border border-[var(--rule)] text-[var(--ink-2)] transition-colors hover:border-[var(--ink)] hover:text-[var(--ink)] md:ml-0 md:mt-1 md:h-8 md:w-8"
           >
             <ArrowLeft size={16} />
           </button>
 
           <div className="min-w-0 flex-1">
             <h2 className="display truncate text-lg">{set.title}</h2>
-            <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1">
+            {/*
+             * The provenance line is reference material, not something you read
+             * while studying, so on a phone it gives its row to the title and
+             * the one number that says where you are.
+             */}
+            <div className="mt-0.5 hidden flex-wrap items-center gap-x-3 gap-y-1 sm:flex">
               <span className="label">{set.contentType}</span>
               <span className="numeral text-2xs text-[var(--ink-3)]">
                 {new Date(set.createdAt).toLocaleDateString(undefined, {
@@ -89,6 +94,12 @@ export default function StudySession({
               </span>
               <span className="numeral text-2xs text-[var(--ink-3)]">
                 {set.flashcards.length} cards
+              </span>
+            </div>
+            <div className="mt-1 flex items-center gap-2 sm:hidden">
+              <MasteryBar cards={set.flashcards} height={3} className="min-w-0 flex-1" />
+              <span className="numeral shrink-0 text-2xs font-bold text-[var(--ink)]">
+                {mastery}%
               </span>
             </div>
           </div>
@@ -102,13 +113,21 @@ export default function StudySession({
           </div>
         </div>
 
-        <nav className="flex gap-1 overflow-x-auto px-6 no-scrollbar" aria-label="Study views">
+        {/*
+         * On a phone the four views divide the full width into equal index
+         * tabs, each one a thumb wide; from sm up they sit back on the left as
+         * a normal tab strip.
+         */}
+        <nav
+          className="flex gap-1 overflow-x-auto px-2 no-scrollbar sm:px-6"
+          aria-label="Study views"
+        >
           {tabs.map(({ id, label, badge }) => (
             <button
               key={id}
               onClick={() => setTab(id)}
               aria-current={tab === id ? 'page' : undefined}
-              className={`-mb-px flex shrink-0 items-center gap-1.5 border-b-2 px-3 py-2.5 font-mono text-xs uppercase tracking-[0.1em] transition-colors duration-150 ${
+              className={`-mb-px flex flex-1 shrink-0 items-center justify-center gap-1.5 border-b-2 px-3 py-3.5 font-mono text-xs uppercase tracking-[0.1em] transition-colors duration-150 sm:flex-none sm:justify-start sm:py-2.5 ${
                 tab === id
                   ? 'border-[var(--ink)] text-[var(--ink)]'
                   : 'border-transparent text-[var(--ink-3)] hover:text-[var(--ink-2)]'

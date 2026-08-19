@@ -69,7 +69,7 @@ export default function Intake({ onProcess, onLoadDemo, hasSets, status }: Intak
 
   return (
     <div ref={root} className="h-full overflow-y-auto">
-      <div className="mx-auto max-w-3xl px-6 py-12 sm:px-10">
+      <div className="pb-safe [--pb-base:3rem] mx-auto max-w-3xl px-4 pt-16 sm:px-10 sm:pt-12">
         {/* Hero — the thesis */}
         <header data-reveal className="border border-[var(--rule)] bg-[var(--paper-2)]">
           <div className="flex items-center justify-between border-b border-[var(--rule)] px-6 py-2">
@@ -81,18 +81,18 @@ export default function Intake({ onProcess, onLoadDemo, hasSets, status }: Intak
             </span>
           </div>
 
-          <div className="px-6 py-10 sm:px-10 sm:py-12">
-            <h2 className="display display-xl text-3xl sm:text-4xl font-extrabold text-[#0052FF] leading-[1.08]">
+          <div className="px-5 py-9 sm:px-10 sm:py-12">
+            <h2 className="display display-xl text-3xl sm:text-4xl font-extrabold text-[var(--accent)] leading-[1.08]">
               Read it once.
               <br />
               <span className="relative inline-block mt-1">
                 <span
                   aria-hidden="true"
-                  className="absolute inset-0 bg-[#FEF08A] z-0 -mx-1 px-1 rounded-[2px]"
+                  className="absolute inset-0 bg-[var(--yellow-wash)] z-0 -mx-1 px-1 rounded-[2px]"
                 />
-                <span className="relative z-10 text-[#0052FF] font-black">Know it</span>
+                <span className="relative z-10 text-[var(--accent)] font-black">Know it</span>
               </span>{' '}
-              <span className="text-[#0052FF]">for good.</span>
+              <span className="text-[var(--accent)]">for good.</span>
             </h2>
 
             <p className="mt-6 max-w-xl text-sm leading-relaxed text-[var(--ink-2)]">
@@ -157,7 +157,7 @@ export default function Intake({ onProcess, onLoadDemo, hasSets, status }: Intak
               aria-pressed={mode === value}
               className={`-mb-px flex items-center gap-2 border-b-2 px-5 py-3 text-xs font-semibold transition-colors duration-150 ${
                 mode === value
-                  ? 'border-[#0052FF] text-[#0052FF]'
+                  ? 'border-[var(--accent)] text-[var(--accent)]'
                   : 'border-transparent text-[var(--ink-3)] hover:text-[var(--ink-2)]'
               }`}
             >
@@ -196,7 +196,7 @@ export default function Intake({ onProcess, onLoadDemo, hasSets, status }: Intak
                 role="button"
                 tabIndex={0}
                 aria-label="Choose a file to upload, or drop one here"
-                className="cursor-pointer border-2 border-dashed border-[#0052FF] bg-[#F5F8FF]/30 dark:bg-[#0052FF]/5 px-8 py-16 text-center transition-colors duration-150 hover:bg-[#F0F5FF]/60"
+                className="cursor-pointer border-2 border-dashed border-[var(--accent)] bg-[var(--accent-wash)]/30 dark:bg-[var(--accent)]/5 px-8 py-16 text-center transition-colors duration-150 hover:bg-[var(--accent-wash)]/60"
               >
                 <input
                   ref={fileInput}
@@ -210,7 +210,7 @@ export default function Intake({ onProcess, onLoadDemo, hasSets, status }: Intak
                   }}
                 />
 
-                <p className="display text-2xl font-bold text-[#0052FF]">
+                <p className="display text-2xl font-bold text-[var(--accent)]">
                   {dragging ? 'Let go' : 'Drop a file here'}
                 </p>
                 <p className="mt-2 text-sm text-[var(--ink-2)]">
@@ -249,7 +249,7 @@ export default function Intake({ onProcess, onLoadDemo, hasSets, status }: Intak
                 value={text}
                 onChange={e => setText(e.target.value)}
                 placeholder="Paste anything you need to learn. Markdown works."
-                className="mt-2 h-64 w-full resize-none rounded-[4px] border border-[var(--rule)] bg-[var(--paper-2)] p-4 leading-relaxed text-[var(--ink)] placeholder:text-[var(--ink-3)] focus:border-[#0052FF] focus:outline-none"
+                className="mt-2 h-64 w-full resize-none rounded-[4px] border border-[var(--rule)] bg-[var(--paper-2)] p-4 leading-relaxed text-[var(--ink)] placeholder:text-[var(--ink-3)] focus:border-[var(--accent)] focus:outline-none"
               />
               <div className="mt-4 flex items-center justify-between">
                 <span className="numeral text-2xs text-[var(--ink-3)]">
@@ -258,7 +258,7 @@ export default function Intake({ onProcess, onLoadDemo, hasSets, status }: Intak
                 <button
                   onClick={() => text.trim() && onProcess(text)}
                   disabled={!text.trim()}
-                  className="h-10 rounded-[6px] bg-[#0052FF] px-6 text-xs font-semibold text-white transition-[background-color,transform] duration-150 hover:bg-[#0042D1] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40"
+                  className="h-12 rounded-[6px] bg-[var(--accent)] px-6 text-xs font-semibold text-white sm:h-10 transition-[background-color,transform] duration-150 hover:bg-[var(--accent-strong)] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   Make a study set
                 </button>

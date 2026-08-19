@@ -5,7 +5,7 @@ import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import rehypeSlug from 'rehype-slug';
 import 'katex/dist/katex.min.css';
-import { findHeading, scrollParent, type HeadingRef } from '../../lib/anchors';
+import { findHeading, scrollParent, stickyOffset, type HeadingRef } from '../../lib/anchors';
 import { shouldAnimate } from '../../lib/motion';
 
 /** Room above a heading once it lands, so it is not flush to the pane's edge. */
@@ -36,7 +36,7 @@ function jumpToSection(event: MouseEvent<HTMLAnchorElement>, href: string) {
   if (pane) {
     const top = target.getBoundingClientRect().top - pane.getBoundingClientRect().top;
     pane.scrollTo({
-      top: pane.scrollTop + top - JUMP_GUTTER,
+      top: pane.scrollTop + top - JUMP_GUTTER - stickyOffset(pane),
       behavior: shouldAnimate() ? 'smooth' : 'auto',
     });
   }
@@ -111,7 +111,7 @@ const components: Components = {
     </blockquote>
   ),
   code: ({ children }) => (
-    <code className="font-mono text-[0.875em] bg-[var(--paper-3)] px-1.5 py-0.5 text-[var(--ink)]">
+    <code className="font-mono text-[0.875em] [overflow-wrap:anywhere] bg-[var(--paper-3)] px-1.5 py-0.5 text-[var(--ink)]">
       {children}
     </code>
   ),

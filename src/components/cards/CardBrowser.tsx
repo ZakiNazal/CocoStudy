@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ArrowLeft, ArrowRight, Undo2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, RotateCw, Undo2 } from 'lucide-react';
 import { cardMastery } from '../../lib/mastery';
 import TickStrip, { type TickTone } from '../ui/TickStrip';
 import type { Flashcard } from '../../types';
@@ -103,7 +103,12 @@ export default function CardBrowser({ cards, onExit }: CardBrowserProps) {
                 className="absolute inset-0 flex flex-col justify-between overflow-y-auto rounded-[4px] border border-[var(--ink)] bg-[var(--paper-2)] p-8"
                 style={{ backfaceVisibility: 'hidden' }}
               >
-                <span className="label">Question</span>
+                <div className="flex items-start justify-between gap-4">
+                  <span className="label">Question</span>
+                  {/* The whole card is the control, so this is the sign that it
+                      turns, not a second thing to press. */}
+                  <RotateCw aria-hidden="true" size={15} className="shrink-0 text-[var(--ink-3)]" />
+                </div>
                 <p className="display my-6 text-xl leading-tight sm:text-2xl">{card.front}</p>
                 <span className="numeral text-2xs text-[var(--ink-3)]">
                   Click or press space to turn over
@@ -118,9 +123,17 @@ export default function CardBrowser({ cards, onExit }: CardBrowserProps) {
                   transform: 'rotateY(180deg)',
                 }}
               >
-                <span className="label" style={{ color: 'var(--ink-3)' }}>
-                  Answer
-                </span>
+                <div className="flex items-start justify-between gap-4">
+                  <span className="label" style={{ color: 'var(--ink-3)' }}>
+                    Answer
+                  </span>
+                  <RotateCw
+                    aria-hidden="true"
+                    size={15}
+                    className="shrink-0 rotate-180"
+                    style={{ color: 'var(--ink-3)' }}
+                  />
+                </div>
                 <p className="my-6 text-lg leading-snug text-[var(--paper)]">{card.back}</p>
                 <span className="numeral text-2xs" style={{ color: 'var(--ink-3)' }}>
                   Click or press space to turn back

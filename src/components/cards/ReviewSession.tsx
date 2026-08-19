@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useGSAP } from '@gsap/react';
-import { Check, Layers } from 'lucide-react';
+import { Check, Layers, RotateCw } from 'lucide-react';
 import { gsap, DUR, EASE, shouldAnimate } from '../../lib/motion';
 import { gradePreview, isDue } from '../../lib/srs';
 import { cardMastery } from '../../lib/mastery';
@@ -167,7 +167,7 @@ export default function ReviewSession({ cards, onGrade, onBrowse }: ReviewSessio
 
   return (
     <div className="flex h-full flex-col">
-      <div className="shrink-0 border-b border-[var(--rule)] bg-[var(--paper-2)] px-6 py-3 sm:px-10">
+      <div className="shrink-0 border-b border-[var(--rule)] bg-[var(--paper-2)] px-4 py-3 sm:px-10">
         <div className="mx-auto max-w-2xl">
           <div className="flex items-baseline justify-between gap-4">
             <span className="label">Review</span>
@@ -177,7 +177,7 @@ export default function ReviewSession({ cards, onGrade, onBrowse }: ReviewSessio
               </span>
               <button
                 onClick={onBrowse}
-                className="font-mono text-2xs uppercase tracking-[0.1em] text-[var(--ink-3)] transition-colors hover:text-[var(--ink)]"
+                className="-my-2 py-2 font-mono text-2xs uppercase tracking-[0.1em] text-[var(--ink-3)] transition-colors hover:text-[var(--ink)]"
               >
                 Browse
               </button>
@@ -193,7 +193,7 @@ export default function ReviewSession({ cards, onGrade, onBrowse }: ReviewSessio
 
       <div
         ref={stage}
-        className="flex min-h-0 flex-1 flex-col justify-center overflow-y-auto px-6 py-8 sm:px-10"
+        className="pb-safe [--pb-base:2rem] flex min-h-0 flex-1 flex-col justify-center overflow-y-auto px-4 pt-8 sm:px-10"
       >
         <div className="mx-auto w-full max-w-2xl">
           <div
@@ -201,21 +201,39 @@ export default function ReviewSession({ cards, onGrade, onBrowse }: ReviewSessio
             className="rounded-[4px] border border-[var(--ink)] bg-[var(--paper-2)]"
           >
             <div className="flex items-center justify-between border-b border-[var(--rule)] px-6 py-2">
-              <span className="label">Question</span>
-              <span className="flex items-center gap-1.5">
-                <span
-                  aria-hidden="true"
-                  className="h-2 w-4"
-                  style={{
-                    background:
-                      mark.ink === 'none' ? 'var(--paper-3)' : `var(--${mark.ink})`,
-                  }}
-                />
-                <span className="numeral text-2xs text-[var(--ink-3)]">{card.srs.state}</span>
+              <span className="label">{revealed ? 'Answer' : 'Question'}</span>
+              <span className="flex items-center gap-3">
+                <span className="flex items-center gap-1.5">
+                  <span
+                    aria-hidden="true"
+                    className="h-2 w-4"
+                    style={{
+                      background:
+                        mark.ink === 'none' ? 'var(--paper-3)' : `var(--${mark.ink})`,
+                    }}
+                  />
+                  <span className="numeral text-2xs text-[var(--ink-3)]">{card.srs.state}</span>
+                </span>
+
+                {/* The corner the thumb already reaches for, and the one control
+                    that works whichever way round the card is. */}
+                <button
+                  onClick={() => setRevealed(r => !r)}
+                  aria-label={revealed ? 'Turn the card back to the question' : 'Turn the card over'}
+                  title={revealed ? 'Turn back' : 'Turn over'}
+                  className="-my-2 -mr-2 flex h-9 w-9 items-center justify-center rounded-[4px] text-[var(--ink-3)] transition-colors duration-150 hover:bg-[var(--paper-3)] hover:text-[var(--ink)]"
+                >
+                  <RotateCw
+                    size={15}
+                    className={`transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${
+                      revealed ? 'rotate-180' : ''
+                    }`}
+                  />
+                </button>
               </span>
             </div>
 
-            <div className="px-6 py-10 sm:px-10 sm:py-12">
+            <div className="px-5 py-9 sm:px-10 sm:py-12">
               <p className="display text-2xl leading-tight sm:text-3xl">{card.front}</p>
 
               {revealed ? (
@@ -228,7 +246,7 @@ export default function ReviewSession({ cards, onGrade, onBrowse }: ReviewSessio
               ) : (
                 <button
                   onClick={() => setRevealed(true)}
-                  className="mt-10 flex w-full items-center justify-center gap-3 rounded-[4px] border border-[var(--rule)] py-3.5 font-mono text-2xs uppercase tracking-[0.1em] text-[var(--ink-2)] transition-colors duration-150 hover:border-[var(--ink)] hover:text-[var(--ink)]"
+                  className="mt-10 flex min-h-12 w-full items-center justify-center gap-3 rounded-[4px] border border-[var(--rule)] py-3.5 font-mono text-2xs uppercase tracking-[0.1em] text-[var(--ink-2)] transition-colors duration-150 hover:border-[var(--ink)] hover:text-[var(--ink)]"
                 >
                   Show answer
                   <kbd className="numeral rounded-[2px] border border-[var(--rule)] px-1.5 py-0.5 text-[0.65rem]">
@@ -257,7 +275,7 @@ export default function ReviewSession({ cards, onGrade, onBrowse }: ReviewSessio
                       {label}
                     </span>
                     <span className="numeral text-2xs text-[var(--ink-3)]">{preview[value]}</span>
-                    <kbd className="numeral text-[0.6rem] text-[var(--ink-3)]">{key}</kbd>
+                    <kbd className="numeral hidden text-[0.6rem] text-[var(--ink-3)] sm:block">{key}</kbd>
                   </button>
                 ))}
               </div>

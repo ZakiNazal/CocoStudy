@@ -75,7 +75,7 @@ export default function Sheet({ open, title, onClose, children }: SheetProps) {
           </button>
         </header>
 
-        <div className="min-h-0 flex-1 overflow-y-auto px-6 py-6">{children}</div>
+        <div className="pb-safe [--pb-base:1.5rem] min-h-0 flex-1 overflow-y-auto px-6 pt-6">{children}</div>
       </div>
     </div>
   );

@@ -10,6 +10,7 @@ import {
   Search,
   Settings,
   Sun,
+  X,
 } from 'lucide-react';
 import { gsap, DUR, EASE, STAGGER, shouldAnimate } from '../../lib/motion';
 import { setMastery } from '../../lib/mastery';
@@ -25,6 +26,7 @@ interface SidebarProps {
   activeSetId: string | null;
   onSelectSet: (id: string) => void;
   onNewSet: () => void;
+  onCloseNav?: () => void;
   onOpenSettings: () => void;
   onCreateFolder: (name: string) => void;
   onRenameFolder: (id: string, name: string) => void;
@@ -36,7 +38,7 @@ interface SidebarProps {
 
 /** The two footer controls read as one pair, so they share a face. */
 const footerButton =
-  'flex h-8 items-center gap-2 rounded-[4px] border border-[var(--rule)] font-mono text-2xs uppercase tracking-[0.1em] text-[var(--ink-2)] transition-colors duration-150 hover:border-[var(--ink)] hover:text-[var(--ink)]';
+  'flex h-11 items-center gap-2 rounded-[4px] border border-[var(--rule)] font-mono text-2xs uppercase tracking-[0.1em] text-[var(--ink-2)] transition-colors duration-150 hover:border-[var(--ink)] hover:text-[var(--ink)] md:h-8';
 
 /** The name field used for both creating and renaming, so they read alike. */
 const nameInput =
@@ -55,6 +57,7 @@ export default function Sidebar({
   activeSetId,
   onSelectSet,
   onNewSet,
+  onCloseNav,
   onOpenSettings,
   onCreateFolder,
   onRenameFolder,
@@ -203,14 +206,20 @@ export default function Sidebar({
           <MasteryBar cards={set.flashcards} height={3} className="mt-2" />
         </button>
 
+        {/*
+         * Filing is a drag on a desktop and this menu is the shortcut. On a
+         * touch screen there is no drag and no hover to reveal the menu with,
+         * so it was the only way in and it was invisible: folders could be made
+         * on a phone but never filled. It stays out until the pointer arrives.
+         */}
         <button
           onClick={() => setSetMenu(open ? null : set.id)}
           aria-label={`File “${set.title}” in a folder`}
           aria-expanded={open}
-          className={`absolute right-2 top-2.5 flex h-6 w-6 items-center justify-center rounded-[4px] text-[var(--ink-3)] transition-opacity duration-150 hover:bg-[var(--paper)] hover:text-[var(--ink)] focus:opacity-100 ${open ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+          className={`absolute right-1 top-1.5 flex h-9 w-9 items-center justify-center rounded-[4px] text-[var(--ink-3)] transition-opacity duration-150 hover:bg-[var(--paper)] hover:text-[var(--ink)] focus:opacity-100 ${open ? 'opacity-100' : 'opacity-100 md:opacity-0 md:group-hover:opacity-100'
             }`}
         >
-          <MoreHorizontal size={14} />
+          <MoreHorizontal size={16} />
         </button>
 
         {open && (
@@ -286,7 +295,7 @@ export default function Sidebar({
               <button
                 onClick={() => toggle(id)}
                 aria-expanded={!shut}
-                className="flex min-w-0 flex-1 items-center gap-1.5 text-left"
+                className="-my-1.5 flex min-w-0 flex-1 items-center gap-1.5 py-3 text-left"
               >
                 {shut ? (
                   <ChevronRight size={13} className="shrink-0 text-[var(--ink-3)]" />
@@ -304,9 +313,9 @@ export default function Sidebar({
                   onClick={() => setFolderMenu(open ? null : id)}
                   aria-label={`Options for “${folder.name}”`}
                   aria-expanded={open}
-                  className="flex h-5 w-5 shrink-0 items-center justify-center rounded-[4px] text-[var(--ink-3)] hover:bg-[var(--paper-3)] hover:text-[var(--ink)]"
+                  className="-my-2 -mr-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-[4px] text-[var(--ink-3)] hover:bg-[var(--paper-3)] hover:text-[var(--ink)]"
                 >
-                  <MoreHorizontal size={13} />
+                  <MoreHorizontal size={15} />
                 </button>
               )}
             </>
@@ -360,7 +369,9 @@ export default function Sidebar({
   return (
     <div
       ref={root}
-      className="flex h-full w-[17.5rem] flex-col border-r border-[var(--rule)] bg-white dark:bg-[var(--paper-2)]"
+      // Narrow phones keep a strip of the page showing, so there is always
+      // something to tap to dismiss the drawer.
+      className="flex h-full w-[min(80vw,17.5rem)] flex-col border-r border-[var(--rule)] bg-[var(--paper-2)] md:w-[17.5rem] dark:bg-[var(--paper-2)]"
     >
       {/* Masthead */}
       <div className="border-b border-[var(--rule)] px-5 py-5">
@@ -369,6 +380,15 @@ export default function Sidebar({
           <h1 className="display text-xl font-bold leading-none tracking-[-0.02em] text-[var(--ink)]">
             CocoStudy
           </h1>
+          {onCloseNav && (
+            <button
+              onClick={onCloseNav}
+              aria-label="Close library"
+              className="-mr-2 ml-auto flex h-10 w-10 shrink-0 items-center justify-center rounded-[4px] text-[var(--ink-3)] transition-colors hover:bg-[var(--paper-3)] hover:text-[var(--ink)] md:hidden"
+            >
+              <X size={18} />
+            </button>
+          )}
         </div>
         <p className="mt-1 text-xs text-[var(--ink-2)]">Marked Up As You Learn!</p>
       </div>
@@ -377,7 +397,7 @@ export default function Sidebar({
       <div className="space-y-3 px-5 py-4">
         <button
           onClick={onNewSet}
-          className="group flex h-10 w-full items-center justify-center gap-2 rounded-[6px] bg-[#0052FF] text-xs font-semibold text-white transition-[background-color,transform] duration-150 hover:bg-[#0042D1] active:scale-[0.98]"
+          className="group flex h-12 w-full items-center justify-center gap-2 rounded-[6px] bg-[var(--accent)] text-xs font-semibold text-white transition-[background-color,transform] duration-150 hover:bg-[var(--accent-strong)] active:scale-[0.98] md:h-10"
         >
           <Plus size={15} strokeWidth={2.5} />
           <span>New Set</span>
@@ -394,7 +414,7 @@ export default function Sidebar({
             onChange={e => setQuery(e.target.value)}
             placeholder="Search"
             aria-label="Search your library"
-            className="h-9 w-full rounded-[6px] border border-[var(--rule)] bg-[#EAEAEA]/70 dark:bg-[var(--paper-3)] pl-8 pr-3 text-xs text-[var(--ink)] placeholder:text-[var(--ink-3)] focus:border-[#0052FF] focus:outline-none"
+            className="h-11 w-full rounded-[6px] border border-[var(--rule)] bg-[var(--paper-3)]/70 pl-8 pr-3 text-xs text-[var(--ink)] placeholder:text-[var(--ink-3)] focus:border-[var(--accent)] focus:outline-none md:h-9 dark:bg-[var(--paper-3)]"
           />
         </div>
       </div>
@@ -422,9 +442,9 @@ export default function Sidebar({
             }}
             aria-label="New folder"
             title="New folder"
-            className="flex h-5 w-5 items-center justify-center rounded-[4px] text-[var(--ink)] hover:bg-[var(--paper-3)]"
+            className="-my-2 flex h-9 w-9 items-center justify-center rounded-[4px] text-[var(--ink)] hover:bg-[var(--paper-3)]"
           >
-            <FolderPlus size={14} />
+            <FolderPlus size={16} />
           </button>
           <span className="numeral text-xs text-[var(--ink)]">{sets.length}</span>
         </div>
@@ -468,11 +488,8 @@ export default function Sidebar({
         )}
       </nav>
 
-      <div className="flex items-center gap-2 border-t border-[var(--rule)] px-5 py-3">
-        <button
-          onClick={onOpenSettings}
-          className={`${footerButton} px-3`}
-        >
+      <div className="pb-safe [--pb-base:0.75rem] flex items-center gap-2 border-t border-[var(--rule)] px-5 pt-3">
+        <button onClick={onOpenSettings} className={`${footerButton} px-3`}>
           <Settings size={14} />
           SETTINGS
         </button>
@@ -481,7 +498,7 @@ export default function Sidebar({
           onClick={() => onChangeTheme(nextTheme(theme))}
           title={dark ? 'Switch to light mode' : 'Switch to dark mode'}
           aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}
-          className={`${footerButton} ml-auto w-8 justify-center`}
+          className={`${footerButton} ml-auto w-11 justify-center md:w-8`}
         >
           {dark ? <Sun size={14} /> : <Moon size={14} />}
         </button>

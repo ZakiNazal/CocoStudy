@@ -81,3 +81,14 @@ export function scrollParent(el: HTMLElement): HTMLElement | null {
   }
   return null;
 }
+
+/**
+ * The height of anything pinned to the top of `pane`, so a heading lands below
+ * it rather than behind it. Returns 0 when the bar is not on screen — the
+ * phone's contents row is `display: none` on a wide screen, which is what
+ * `offsetParent` is being read for.
+ */
+export function stickyOffset(pane: HTMLElement | null): number {
+  const bar = pane?.querySelector<HTMLElement>('[data-sticky-offset]');
+  return bar && bar.offsetParent !== null ? bar.getBoundingClientRect().height : 0;
+}

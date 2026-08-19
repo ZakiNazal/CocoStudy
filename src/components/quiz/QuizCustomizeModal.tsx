@@ -76,7 +76,7 @@ export default function QuizCustomizeModal({
       role="dialog"
       aria-modal="true"
       aria-labelledby="quiz-modal-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
+      className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-4 sm:p-6"
     >
       {/* Backdrop */}
       <div
@@ -87,7 +87,7 @@ export default function QuizCustomizeModal({
       />
 
       {/* Modal Container */}
-      <div className="relative w-full max-w-lg rounded-[6px] border border-[var(--rule)] bg-white dark:bg-[var(--paper-2)] p-6 sm:p-8 text-[var(--ink)] shadow-xl transition-all">
+      <div className="relative max-h-[calc(100dvh-2rem)] w-full max-w-lg overflow-y-auto rounded-[6px] border border-[var(--rule)] bg-[var(--paper-2)] p-6 text-[var(--ink)] shadow-xl transition-all sm:max-h-[calc(100dvh-3rem)] sm:p-8 dark:bg-[var(--paper-2)]">
         {/* Close Button if user can dismiss */}
         {hasExistingQuiz && !isGenerating && (
           <button
@@ -101,7 +101,7 @@ export default function QuizCustomizeModal({
 
         {/* Masthead */}
         <div className="flex items-center gap-2">
-          <span className="inline-flex items-center gap-1 rounded-[4px] bg-[#0052FF]/10 px-2 py-0.5 font-mono text-2xs font-semibold uppercase tracking-[0.08em] text-[#0052FF]">
+          <span className="inline-flex items-center gap-1 rounded-[4px] bg-[var(--accent)]/10 px-2 py-0.5 font-mono text-2xs font-semibold uppercase tracking-[0.08em] text-[var(--accent)]">
             <Sparkles size={11} />
             Quiz Setup
           </span>
@@ -134,20 +134,20 @@ export default function QuizCustomizeModal({
               onClick={() => toggleType('mcq')}
               className={`flex flex-col justify-between rounded-[6px] border p-3.5 text-left transition-all ${
                 selectedTypes.includes('mcq')
-                  ? 'border-[#0052FF] bg-[#0052FF]/5 ring-1 ring-[#0052FF]'
+                  ? 'border-[var(--accent)] bg-[var(--accent)]/5 ring-1 ring-[var(--accent)]'
                   : 'border-[var(--rule)] bg-[var(--paper)]/50 hover:border-[var(--ink-3)]'
               }`}
             >
               <div className="flex items-center justify-between">
                 <ListChecks
                   size={18}
-                  className={selectedTypes.includes('mcq') ? 'text-[#0052FF]' : 'text-[var(--ink-3)]'}
+                  className={selectedTypes.includes('mcq') ? 'text-[var(--accent)]' : 'text-[var(--ink-3)]'}
                 />
                 <div
                   className={`flex h-4 w-4 items-center justify-center rounded-[3px] border ${
                     selectedTypes.includes('mcq')
-                      ? 'border-[#0052FF] bg-[#0052FF] text-white'
-                      : 'border-[var(--rule)] bg-white dark:bg-[var(--paper)]'
+                      ? 'border-[var(--accent)] bg-[var(--accent)] text-white'
+                      : 'border-[var(--rule)] bg-[var(--paper-2)] dark:bg-[var(--paper)]'
                   }`}
                 >
                   {selectedTypes.includes('mcq') && <Check size={12} strokeWidth={3} />}
@@ -165,20 +165,20 @@ export default function QuizCustomizeModal({
               onClick={() => toggleType('true_false')}
               className={`flex flex-col justify-between rounded-[6px] border p-3.5 text-left transition-all ${
                 selectedTypes.includes('true_false')
-                  ? 'border-[#0052FF] bg-[#0052FF]/5 ring-1 ring-[#0052FF]'
+                  ? 'border-[var(--accent)] bg-[var(--accent)]/5 ring-1 ring-[var(--accent)]'
                   : 'border-[var(--rule)] bg-[var(--paper)]/50 hover:border-[var(--ink-3)]'
               }`}
             >
               <div className="flex items-center justify-between">
                 <HelpCircle
                   size={18}
-                  className={selectedTypes.includes('true_false') ? 'text-[#0052FF]' : 'text-[var(--ink-3)]'}
+                  className={selectedTypes.includes('true_false') ? 'text-[var(--accent)]' : 'text-[var(--ink-3)]'}
                 />
                 <div
                   className={`flex h-4 w-4 items-center justify-center rounded-[3px] border ${
                     selectedTypes.includes('true_false')
-                      ? 'border-[#0052FF] bg-[#0052FF] text-white'
-                      : 'border-[var(--rule)] bg-white dark:bg-[var(--paper)]'
+                      ? 'border-[var(--accent)] bg-[var(--accent)] text-white'
+                      : 'border-[var(--rule)] bg-[var(--paper-2)] dark:bg-[var(--paper)]'
                   }`}
                 >
                   {selectedTypes.includes('true_false') && <Check size={12} strokeWidth={3} />}
@@ -196,20 +196,20 @@ export default function QuizCustomizeModal({
               onClick={() => toggleType('essay')}
               className={`flex flex-col justify-between rounded-[6px] border p-3.5 text-left transition-all ${
                 selectedTypes.includes('essay')
-                  ? 'border-[#0052FF] bg-[#0052FF]/5 ring-1 ring-[#0052FF]'
+                  ? 'border-[var(--accent)] bg-[var(--accent)]/5 ring-1 ring-[var(--accent)]'
                   : 'border-[var(--rule)] bg-[var(--paper)]/50 hover:border-[var(--ink-3)]'
               }`}
             >
               <div className="flex items-center justify-between">
                 <FileText
                   size={18}
-                  className={selectedTypes.includes('essay') ? 'text-[#0052FF]' : 'text-[var(--ink-3)]'}
+                  className={selectedTypes.includes('essay') ? 'text-[var(--accent)]' : 'text-[var(--ink-3)]'}
                 />
                 <div
                   className={`flex h-4 w-4 items-center justify-center rounded-[3px] border ${
                     selectedTypes.includes('essay')
-                      ? 'border-[#0052FF] bg-[#0052FF] text-white'
-                      : 'border-[var(--rule)] bg-white dark:bg-[var(--paper)]'
+                      ? 'border-[var(--accent)] bg-[var(--accent)] text-white'
+                      : 'border-[var(--rule)] bg-[var(--paper-2)] dark:bg-[var(--paper)]'
                   }`}
                 >
                   {selectedTypes.includes('essay') && <Check size={12} strokeWidth={3} />}
@@ -229,7 +229,7 @@ export default function QuizCustomizeModal({
             <label className="block font-mono text-2xs font-bold uppercase tracking-[0.08em] text-[var(--ink-3)]">
               Number of Questions
             </label>
-            <span className="font-mono text-xs font-bold text-[#0052FF]">
+            <span className="font-mono text-xs font-bold text-[var(--accent)]">
               {count} {count === 1 ? 'question' : 'questions'}
             </span>
           </div>
@@ -244,7 +244,7 @@ export default function QuizCustomizeModal({
                   onClick={() => updateCount(preset)}
                   className={`rounded-[4px] border px-3 py-1.5 font-mono text-xs font-semibold transition-colors ${
                     count === preset
-                      ? 'border-[#0052FF] bg-[#0052FF] text-white'
+                      ? 'border-[var(--accent)] bg-[var(--accent)] text-white'
                       : 'border-[var(--rule)] bg-[var(--paper)]/50 text-[var(--ink-2)] hover:border-[var(--ink)]'
                   }`}
                 >
@@ -260,7 +260,7 @@ export default function QuizCustomizeModal({
                 onClick={() => updateCount(count - 1)}
                 disabled={count <= 1}
                 aria-label="Decrease question count"
-                className="flex h-7 w-7 items-center justify-center rounded-[3px] text-[var(--ink-2)] hover:bg-black/5 disabled:opacity-30"
+                className="flex h-9 w-9 items-center justify-center rounded-[3px] text-[var(--ink-2)] hover:bg-black/5 disabled:opacity-30 sm:h-7 sm:w-7"
               >
                 <Minus size={13} />
               </button>
@@ -270,7 +270,7 @@ export default function QuizCustomizeModal({
                 onClick={() => updateCount(count + 1)}
                 disabled={count >= 20}
                 aria-label="Increase question count"
-                className="flex h-7 w-7 items-center justify-center rounded-[3px] text-[var(--ink-2)] hover:bg-black/5 disabled:opacity-30"
+                className="flex h-9 w-9 items-center justify-center rounded-[3px] text-[var(--ink-2)] hover:bg-black/5 disabled:opacity-30 sm:h-7 sm:w-7"
               >
                 <Plus size={13} />
               </button>
@@ -294,7 +294,7 @@ export default function QuizCustomizeModal({
             type="button"
             disabled={isGenerating || selectedTypes.length === 0}
             onClick={handleStart}
-            className="inline-flex items-center gap-2 rounded-[4px] bg-[#0052FF] px-5 py-2.5 font-mono text-2xs font-semibold uppercase tracking-[0.08em] text-white transition-all hover:bg-[#0047E0] active:scale-[0.98] disabled:opacity-60"
+            className="inline-flex items-center gap-2 rounded-[4px] bg-[var(--accent)] px-5 py-2.5 font-mono text-2xs font-semibold uppercase tracking-[0.08em] text-white transition-all hover:bg-[var(--accent-strong)] active:scale-[0.98] disabled:opacity-60"
           >
             {isGenerating ? (
               <>

@@ -82,7 +82,7 @@ export default function TutorView({
 
   return (
     <div className="flex h-full flex-col">
-      <div ref={log} className="min-h-0 flex-1 overflow-y-auto px-6 sm:px-10">
+      <div ref={log} className="min-h-0 flex-1 overflow-y-auto px-4 sm:px-10">
         <div className="mx-auto max-w-2xl py-8">
           {chat.length === 0 ? (
             <div>
@@ -144,7 +144,7 @@ export default function TutorView({
         </div>
       </div>
 
-      <div className="shrink-0 border-t border-[var(--rule)] bg-[var(--paper-2)] px-6 py-4 sm:px-10">
+      <div className="pb-safe [--pb-base:1rem] shrink-0 border-t border-[var(--rule)] bg-[var(--paper-2)] px-4 pt-4 sm:px-10">
         <div className="mx-auto max-w-2xl">
           {error && (
             <div className="mb-3">
@@ -178,7 +178,7 @@ export default function TutorView({
               onClick={() => void send(draft)}
               disabled={!ready}
               aria-label="Send message"
-              className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-[4px] border transition-[background-color,border-color,color,transform] duration-150 ${
+              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-[4px] border transition-[background-color,border-color,color,transform] duration-150 sm:h-8 sm:w-8 ${
                 ready
                   ? 'border-[var(--ink)] bg-[var(--ink)] text-[var(--paper)] hover:border-[var(--ink-2)] hover:bg-[var(--ink-2)] active:scale-[0.94]'
                   : 'border-[var(--rule)] bg-transparent text-[var(--ink-3)]'

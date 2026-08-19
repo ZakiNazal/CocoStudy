@@ -1,8 +1,6 @@
 import { gsap } from 'gsap';
 import { useGSAP } from '@gsap/react';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { Flip } from 'gsap/Flip';
-import { Observer } from 'gsap/Observer';
 import { CustomEase } from 'gsap/CustomEase';
 
 /**
@@ -40,7 +38,7 @@ let registered = false;
 /** Registers plugins and the custom marker ease exactly once. */
 export function registerMotion(): void {
   if (registered) return;
-  gsap.registerPlugin(useGSAP, ScrollTrigger, Flip, Observer, CustomEase);
+  gsap.registerPlugin(useGSAP, Flip, CustomEase);
   CustomEase.create('marker', 'M0,0 C0.15,0.6 0.3,0.94 0.5,0.97 0.7,0.99 0.85,1 1,1');
   gsap.defaults({ ease: EASE.signature, duration: DUR.base });
   registered = true;
@@ -66,4 +64,4 @@ export function shouldAnimate(): boolean {
   return !prefersReducedMotion() && document.visibilityState === 'visible';
 }
 
-export { gsap, ScrollTrigger, Flip, Observer };
+export { gsap, Flip };
