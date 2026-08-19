@@ -24,7 +24,7 @@
 
 <br />
 
-## 🌟 Highlights
+## Highlights
 
 - **Multi-Format Intake**: Drop in PDFs, Word documents (`.docx`), PowerPoint slide decks (`.pptx`), audio recordings, video lectures, or raw pasted text. Audio/video recordings are automatically transcribed.
 - **Smart Study Guides**: Structured notes with auto-generated outlines, collapsible section cards, LaTeX math rendering (`KaTeX`), syntax-highlighted code blocks, and AI illustration visualizers.
@@ -34,10 +34,10 @@
 - **Grounded AI Tutor**: A focused conversational tutor that answers strictly from your course material, explains complex concepts simply, and challenges your understanding.
 - **100% Private & Offline-First**: All data, flashcards, study sets, and progress are stored entirely inside your browser via IndexedDB. Your Gemini API key never leaves your device.
 
-[**cocostudy.vercel.app**](https://cocostudy.vercel.app/)
+[**cocostudy.space**](https://cocostudy.space)
 ---
 
-## 📸 App Showcase
+## App Showcase
 
 ### 1. Interactive Study Guide (Notes)
 Structured study notes with a sticky outline table of contents, collapsible section cards, and one-click visual diagrams.
@@ -94,7 +94,7 @@ For generating new study sets from your own files and lectures, add a Google Gem
 
 Four grades: again, hard, good, easy. Each card has an ease factor starting at 2.5 that drifts between 1.3 and 2.8 depending on how you answer. Get one wrong and it comes back in ten minutes, not tomorrow. Intervals grow from there and stop at a year.
 
-## 💻 Local Development
+## Local Development
 
 ### Prerequisites
 - **Node.js**: v18.0.0 or higher
@@ -127,7 +127,7 @@ Visit `http://localhost:5173` in your browser.
 
 The bar under each set in the sidebar is the whole deck in those inks, so you can read the state of a set without opening it.
 
-## 🧠 How Spaced Repetition Works
+## How Spaced Repetition Works
 
 CocoStudy implements an adaptive SM-2 spaced repetition algorithm:
 
@@ -144,7 +144,7 @@ CocoStudy implements an adaptive SM-2 spaced repetition algorithm:
 
 ---
 
-## 🛠️ Technology Stack
+## Technology Stack
 
 - **Frontend**: React 19, TypeScript, Vite
 - **Styling**: Tailwind CSS v4, Vanilla CSS Custom Properties
@@ -169,7 +169,7 @@ Bricolage Grotesque for display, Source Serif 4 for reading, Martian Mono for an
 
 ## License
 
-## 🔒 Privacy & Data Sovereignty
+## Privacy & Data Sovereignty
 
 - **Zero Cloud Tracking**: All study sets, notes, flashcards, folders, and statistics reside in your browser's IndexedDB.
 - **Full Data Portability**: Export your complete library as a JSON backup at any time from Settings, or import previously saved backups.
@@ -177,6 +177,6 @@ Bricolage Grotesque for display, Source Serif 4 for reading, Martian Mono for an
 
 ---
 
-## 📄 License
+## License
 
 Distributed under the MIT License. See [`LICENSE`](LICENSE) for more details.
