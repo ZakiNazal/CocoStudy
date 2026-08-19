@@ -25,7 +25,7 @@ import {
   X,
 } from 'lucide-react';
 import { getBlobUrl, putBlob } from '../../lib/db';
-import { slugify } from '../../lib/anchors';
+import { slugify, stickyOffset } from '../../lib/anchors';
 import { shouldAnimate } from '../../lib/motion';
 import { generateStudyImage } from '../../services/ai';
 import MarkdownView from './MarkdownView';
@@ -223,7 +223,7 @@ export default function NotesView({ set, onUpdateSet }: NotesViewProps) {
       if (el && pane) {
         const top = el.getBoundingClientRect().top - pane.getBoundingClientRect().top;
         pane.scrollTo({
-          top: pane.scrollTop + top - 24,
+          top: pane.scrollTop + top - 24 - stickyOffset(pane),
           behavior: shouldAnimate() ? 'smooth' : 'auto',
         });
 
@@ -335,11 +335,11 @@ export default function NotesView({ set, onUpdateSet }: NotesViewProps) {
   }, [titleDraft, bodyDraft]);
 
   const toolButton =
-    'flex items-center gap-1.5 rounded-[4px] border border-[var(--rule)] px-3 py-1.5 font-mono text-2xs uppercase tracking-[0.1em] text-[var(--ink-2)] transition-colors duration-150 hover:border-[var(--ink)] hover:text-[var(--ink)] disabled:opacity-50';
+    'flex min-h-11 items-center gap-1.5 rounded-[4px] border border-[var(--rule)] px-4 py-1.5 font-mono text-2xs uppercase tracking-[0.1em] text-[var(--ink-2)] transition-colors duration-150 hover:border-[var(--ink)] hover:text-[var(--ink)] disabled:opacity-50 sm:min-h-0 sm:px-3';
 
   return (
-    <div ref={scrollContainer} className="h-full overflow-y-auto px-6 py-8 sm:px-10">
-      <div className="mx-auto max-w-5xl">
+    <div ref={scrollContainer} className="pb-safe [--pb-base:2rem] h-full overflow-y-auto px-4 sm:px-10">
+      <div className="mx-auto max-w-5xl pt-8">
         {imageError && (
           <div className="mb-6">
             <Banner tone="error" onDismiss={() => setImageError(null)}>
@@ -350,8 +350,43 @@ export default function NotesView({ set, onUpdateSet }: NotesViewProps) {
 
         {!editing ? (
           <div className="flex flex-col lg:flex-row items-start gap-8 lg:gap-12">
+            {/*
+             * The contents, lying down as a row of section tabs and pinned to
+             * the top of the pane so a jump is always one thumb away.
+             *
+             * It is a child of this container rather than of the rail because a
+             * sticky element only stays put while its own parent is on screen,
+             * and the rail is 200px tall — it would come unstuck almost at once.
+             * The rail keeps its own vertical copy for wide screens; only one of
+             * the two is ever displayed, so there is no duplicate landmark.
+             */}
+            {sections.length > 0 && (
+              <nav
+                data-sticky-offset
+                aria-label="Table of contents"
+                className="no-scrollbar sticky top-0 z-10 order-2 -mx-4 flex w-[calc(100%+2rem)] gap-2 overflow-x-auto border-b border-[var(--rule)] bg-[var(--paper)] px-4 py-2.5 lg:hidden"
+              >
+                {sections.map(section => {
+                  const isActive = activeSectionId === section.id;
+                  return (
+                    <button
+                      key={section.id}
+                      onClick={() => scrollToSection(section.id)}
+                      className={`shrink-0 whitespace-nowrap rounded-[4px] border px-3 py-2 text-left text-sm font-bold transition-colors duration-150 ${
+                        isActive
+                          ? 'border-[var(--accent)] text-[var(--accent)]'
+                          : 'border-[var(--rule)] text-[var(--ink)] hover:text-[var(--accent)]'
+                      }`}
+                    >
+                      {section.title}
+                    </button>
+                  );
+                })}
+              </nav>
+            )}
+
             {/* Main Content (Left) */}
-            <div className="min-w-0 flex-1 w-full">
+            <div className="order-3 min-w-0 flex-1 w-full lg:order-none">
               {/* Document Masthead */}
               <header className="mb-8">
                 <h1 className="display text-3xl sm:text-4xl font-extrabold text-[var(--ink)] leading-tight">
@@ -368,7 +403,7 @@ export default function NotesView({ set, onUpdateSet }: NotesViewProps) {
               {imageUrls.length > 0 && (
                 <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
                   {imageUrls.map((url, i) => (
-                    <figure key={url} className="border border-[var(--rule)] bg-white dark:bg-[var(--paper-2)]">
+                    <figure key={url} className="border border-[var(--rule)] bg-[var(--paper-2)]">
                       <img
                         src={url}
                         alt={`Illustration ${i + 1} for ${set.title}`}
@@ -421,7 +456,7 @@ export default function NotesView({ set, onUpdateSet }: NotesViewProps) {
             </div>
 
             {/* Study Guide Sidebar (Right - Sticky) */}
-            <aside className="w-full lg:w-56 shrink-0 lg:sticky lg:top-0">
+            <aside className="order-1 w-full shrink-0 lg:order-none lg:sticky lg:top-0 lg:w-56">
               <div className="border-b border-[var(--rule)] pb-4">
                 <span className="font-mono text-2xs uppercase tracking-[0.1em] text-[var(--ink-3)] font-semibold">
                   Study Guide
@@ -443,16 +478,16 @@ export default function NotesView({ set, onUpdateSet }: NotesViewProps) {
                 </div>
               </div>
 
-              {/* Outline Table of Contents */}
+              {/* The rail's own copy of the contents, beside the guide. */}
               {sections.length > 0 && (
-                <div className="mt-6">
+                <div className="mt-6 hidden lg:block">
                   <div className="flex items-center justify-between mb-3">
                     <span className="font-mono text-2xs uppercase tracking-[0.1em] text-[var(--ink-3)] font-semibold">
                       Outline
                     </span>
                     <button
                       onClick={toggleCollapseAll}
-                      className="flex items-center gap-1 font-mono text-2xs uppercase tracking-[0.08em] text-[var(--ink-3)] hover:text-[var(--ink)] transition-colors"
+                      className="-my-2 flex items-center gap-1 py-2 font-mono text-2xs uppercase tracking-[0.08em] text-[var(--ink-3)] transition-colors hover:text-[var(--ink)]"
                       title={allCollapsed ? 'Expand all sections' : 'Collapse all sections'}
                     >
                       {allCollapsed ? <ChevronsDown size={12} /> : <ChevronsUp size={12} />}
@@ -461,22 +496,19 @@ export default function NotesView({ set, onUpdateSet }: NotesViewProps) {
                   </div>
 
                   <nav className="flex flex-col space-y-3" aria-label="Table of contents">
-                    {sections.map(section => {
-                      const isActive = activeSectionId === section.id;
-                      return (
-                        <button
-                          key={section.id}
-                          onClick={() => scrollToSection(section.id)}
-                          className={`text-left text-sm font-bold transition-colors duration-150 ${
-                            isActive
-                              ? 'text-[#0052FF]'
-                              : 'text-[var(--ink)] hover:text-[#0052FF]'
-                          }`}
-                        >
-                          {section.title}
-                        </button>
-                      );
-                    })}
+                    {sections.map(section => (
+                      <button
+                        key={section.id}
+                        onClick={() => scrollToSection(section.id)}
+                        className={`text-left text-sm font-bold transition-colors duration-150 ${
+                          activeSectionId === section.id
+                            ? 'text-[var(--accent)]'
+                            : 'text-[var(--ink)] hover:text-[var(--accent)]'
+                        }`}
+                      >
+                        {section.title}
+                      </button>
+                    ))}
                   </nav>
                 </div>
               )}
@@ -492,7 +524,7 @@ export default function NotesView({ set, onUpdateSet }: NotesViewProps) {
                   onClick={() => setEditTab('write')}
                   className={`inline-flex items-center gap-1.5 rounded-[4px] px-3 py-1.5 font-mono text-2xs font-semibold uppercase tracking-[0.08em] transition-colors ${
                     editTab === 'write'
-                      ? 'bg-white dark:bg-[var(--paper-2)] text-[#0052FF] shadow-xs'
+                      ? 'bg-[var(--paper-2)] text-[var(--accent)] shadow-xs'
                       : 'text-[var(--ink-3)] hover:text-[var(--ink)]'
                   }`}
                 >
@@ -504,7 +536,7 @@ export default function NotesView({ set, onUpdateSet }: NotesViewProps) {
                   onClick={() => setEditTab('preview')}
                   className={`inline-flex items-center gap-1.5 rounded-[4px] px-3 py-1.5 font-mono text-2xs font-semibold uppercase tracking-[0.08em] transition-colors ${
                     editTab === 'preview'
-                      ? 'bg-white dark:bg-[var(--paper-2)] text-[#0052FF] shadow-xs'
+                      ? 'bg-[var(--paper-2)] text-[var(--accent)] shadow-xs'
                       : 'text-[var(--ink-3)] hover:text-[var(--ink)]'
                   }`}
                 >
@@ -517,7 +549,7 @@ export default function NotesView({ set, onUpdateSet }: NotesViewProps) {
                 <button
                   type="button"
                   onClick={handleCancel}
-                  className="flex items-center gap-1.5 rounded-[4px] border border-[var(--rule)] bg-white dark:bg-[var(--paper)] px-3 py-1.5 font-mono text-2xs uppercase tracking-[0.1em] text-[var(--ink-2)] transition-colors hover:border-[var(--ink)] hover:text-[var(--ink)]"
+                  className="flex items-center gap-1.5 rounded-[4px] border border-[var(--rule)] bg-[var(--paper-2)] dark:bg-[var(--paper)] px-3 py-1.5 font-mono text-2xs uppercase tracking-[0.1em] text-[var(--ink-2)] transition-colors hover:border-[var(--ink)] hover:text-[var(--ink)]"
                 >
                   <X size={13} />
                   Cancel
@@ -525,7 +557,7 @@ export default function NotesView({ set, onUpdateSet }: NotesViewProps) {
                 <button
                   type="button"
                   onClick={handleSave}
-                  className="flex items-center gap-1.5 rounded-[4px] bg-[#0052FF] px-4 py-1.5 font-mono text-2xs font-semibold uppercase tracking-[0.1em] text-white transition-all hover:bg-[#0047E0] active:scale-[0.97]"
+                  className="flex items-center gap-1.5 rounded-[4px] bg-[var(--accent)] px-4 py-1.5 font-mono text-2xs font-semibold uppercase tracking-[0.1em] text-white transition-all hover:bg-[var(--accent-strong)] active:scale-[0.97]"
                 >
                   <Save size={13} />
                   Save Notes
@@ -547,7 +579,7 @@ export default function NotesView({ set, onUpdateSet }: NotesViewProps) {
                 value={titleDraft}
                 onChange={e => setTitleDraft(e.target.value)}
                 placeholder="Title of your study notes..."
-                className="w-full rounded-[6px] border border-[var(--rule)] bg-white dark:bg-[var(--paper-2)] px-4 py-2.5 font-bold text-lg sm:text-xl text-[var(--ink)] placeholder:text-[var(--ink-3)] focus:border-[#0052FF] focus:outline-none transition-colors"
+                className="w-full rounded-[6px] border border-[var(--rule)] bg-[var(--paper-2)] px-4 py-2.5 font-bold text-lg sm:text-xl text-[var(--ink)] placeholder:text-[var(--ink-3)] focus:border-[var(--accent)] focus:outline-none transition-colors"
               />
             </div>
 
@@ -566,7 +598,7 @@ export default function NotesView({ set, onUpdateSet }: NotesViewProps) {
                 </div>
 
                 {/* Comprehensive Formatting Toolbar */}
-                <div className="flex flex-wrap items-center gap-1 rounded-[6px] border border-[var(--rule)] bg-white dark:bg-[var(--paper-2)] p-1.5 shadow-2xs">
+                <div className="flex flex-wrap items-center gap-1 rounded-[6px] border border-[var(--rule)] bg-[var(--paper-2)] p-1.5 shadow-2xs">
                   {/* Headings */}
                   <button
                     type="button"
@@ -675,7 +707,7 @@ export default function NotesView({ set, onUpdateSet }: NotesViewProps) {
                   <button
                     type="button"
                     onClick={() => insertBlock('## New Section\n\n- Key point 1\n- Key point 2')}
-                    className="ml-auto inline-flex items-center gap-1 rounded-[3px] bg-[#0052FF]/10 px-2 py-1 font-mono text-2xs font-semibold text-[#0052FF] hover:bg-[#0052FF]/20"
+                    className="ml-auto inline-flex items-center gap-1 rounded-[3px] bg-[var(--accent)]/10 px-2 py-1 font-mono text-2xs font-semibold text-[var(--accent)] hover:bg-[var(--accent)]/20"
                     title="Add a new structured section template"
                   >
                     <PlusCircle size={12} />
@@ -691,7 +723,7 @@ export default function NotesView({ set, onUpdateSet }: NotesViewProps) {
                   onChange={e => setBodyDraft(e.target.value)}
                   placeholder="Write or customize your notes... Use ## for headings, - for bullet points, and ``` for code blocks."
                   aria-label="Edit study guide content"
-                  className="h-[55vh] w-full resize-none rounded-[6px] border border-[var(--rule)] bg-white dark:bg-[var(--paper-2)] p-4 font-sans text-sm sm:text-base leading-relaxed text-[var(--ink)] placeholder:text-[var(--ink-3)] focus:border-[#0052FF] focus:outline-none transition-colors"
+                  className="h-[55vh] w-full resize-none rounded-[6px] border border-[var(--rule)] bg-[var(--paper-2)] p-4 font-sans text-sm sm:text-base leading-relaxed text-[var(--ink)] placeholder:text-[var(--ink-3)] focus:border-[var(--accent)] focus:outline-none transition-colors"
                 />
 
                 <div className="flex items-center justify-between text-2xs text-[var(--ink-3)] px-1">
@@ -700,7 +732,7 @@ export default function NotesView({ set, onUpdateSet }: NotesViewProps) {
               </div>
             ) : (
               /* Live Preview Mode */
-              <div className="rounded-[6px] border border-[var(--rule)] bg-white dark:bg-[var(--paper-2)] p-6 sm:p-8 min-h-[55vh]">
+              <div className="rounded-[6px] border border-[var(--rule)] bg-[var(--paper-2)] p-6 sm:p-8 min-h-[55vh]">
                 <div className="border-b border-[var(--rule)] pb-4 mb-6">
                   <span className="font-mono text-2xs uppercase tracking-[0.1em] text-[var(--ink-3)] font-semibold">
                     Preview Mode

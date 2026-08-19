@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Menu, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Menu } from 'lucide-react';
 import Sidebar from './components/shell/Sidebar';
 import Intake from './components/intake/Intake';
 import StudySession from './components/StudySession';
@@ -30,6 +30,23 @@ export default function App() {
 
   const activeSet = sets.find(s => s.id === activeSetId) ?? null;
   const folders = meta?.folders ?? [];
+
+  /* The drawer is a modal surface on a phone, so it closes the way every other
+     one does. Without this, Escape does nothing and the page behind it scrolls
+     under your finger while the library is open on top. */
+  useEffect(() => {
+    if (!navOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setNavOpen(false);
+    };
+    window.addEventListener('keydown', onKey);
+    const { overflow } = document.body.style;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      document.body.style.overflow = overflow;
+    };
+  }, [navOpen]);
 
   /** Deleting a shelf empties it onto Unfiled — the sets themselves survive. */
   const handleDeleteFolder = async (id: string) => {
@@ -79,6 +96,7 @@ export default function App() {
             setActiveSetId(null);
             setNavOpen(false);
           }}
+          onCloseNav={() => setNavOpen(false)}
           onOpenSettings={() => {
             setNavOpen(false);
             setSettingsOpen(true);
@@ -89,13 +107,21 @@ export default function App() {
       </div>
 
       <main className="relative flex min-w-0 flex-1 flex-col">
-        <button
-          onClick={() => setNavOpen(v => !v)}
-          aria-label={navOpen ? 'Close library' : 'Open library'}
-          className="absolute left-4 top-4 z-50 flex h-9 w-9 items-center justify-center rounded-[4px] border border-[var(--rule)] bg-[var(--paper-2)] text-[var(--ink)] md:hidden"
-        >
-          {navOpen ? <X size={18} /> : <Menu size={18} />}
-        </button>
+        {/*
+         * Only while the library is shut. Open, it sat on top of the drawer's
+         * own masthead and covered the mark; the way out belongs inside the
+         * drawer, next to the name it belongs to.
+         */}
+        {!navOpen && (
+          <button
+            onClick={() => setNavOpen(true)}
+            aria-label="Open library"
+            aria-expanded={false}
+            className="absolute left-3 top-3 z-50 flex h-11 w-11 items-center justify-center rounded-[4px] border border-[var(--rule)] bg-[var(--paper-2)] text-[var(--ink)] active:bg-[var(--paper-3)] md:hidden"
+          >
+            <Menu size={18} />
+          </button>
+        )}
 
         {error && (
           <div className="px-6 pt-6">

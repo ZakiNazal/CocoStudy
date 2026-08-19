@@ -1,65 +1,93 @@
+/**
+ * What the models are asked for, written against what the app does with the
+ * answer. Three things drive most of the constraints here:
+ *
+ * - The study guide is split on its H2 headings. Each one becomes a collapsible
+ *   card and an entry in the contents rail, so H2 titles are interface labels,
+ *   not prose. Everything above the first H2 is the lead under the masthead.
+ * - The H1 is the set's title everywhere it is listed.
+ * - Notes and tutor replies render through the same markdown view: GFM tables,
+ *   task lists and KaTeX all work. Flashcards and quizzes are plain text.
+ */
+
 export const SUMMARY_PROMPT = `
-You are an expert academic editor and professional curriculum writer. Given any input (text, lecture transcript, audio, slides or documents), produce an authoritative, concise, and highly-organized study guide in strict Markdown format.
+You are an expert academic editor and curriculum writer. Given any input (text,
+lecture transcript, audio, slides or documents), produce an authoritative,
+well-organised study guide in strict Markdown.
 
-REQUIREMENTS (MUST FOLLOW EXACTLY):
+STRUCTURE (FOLLOW EXACTLY):
 
-1) Top-level title (H1) — descriptive and professional (no emojis here).
-2) One-sentence TL;DR (single line, <= 20 words).
-3) Executive summary (1 short paragraph — 2–4 sentences) that explains what the content covers and why it matters.
-4) Learning objectives (bullet list of 3–5 measurable objectives; each starts with a verb such as "Explain", "Identify", "Apply").
-5) Structured outline (H2) — table-of-contents bullets linking to the sections
-   below. Write each as [Exact Section Title](#exact-section-title): the link
-   text must repeat the heading word for word, and the anchor must be that
-   same title lowercased with spaces as hyphens and punctuation dropped.
-6) Detailed notes (H2) with clear H3 subsections. Follow this pattern for each major section:
-   - H3 subsection title
-   - Short explanatory paragraph (1–3 sentences)
-   - Key points (1–6 bullets) with bolded terms and short supporting sentences
-   - If applicable, include an example, formula (in a fenced code block), or a short step-by-step process.
-7) Glossary (H2) — 6–10 key terms, each formatted as **Term** — short concise definition (one line).
-8) Study plan (H2) — 2–3 short sessions with time estimates and focus areas.
-9) Practice questions (H2) — 5 questions total: 3 conceptual, 1 applied, 1 challenge. After the questions, include an **Answers** section with succinct answers.
-10) Key takeaways (H2) — 3–6 short, memorable lines.
+1) One H1 title — descriptive, specific, no emoji. This becomes the note's name.
+2) Directly under it, a one-sentence summary of 25 words or fewer. No heading,
+   no bold label, just the sentence. It is the standfirst under the title.
+3) "## Learning objectives" — 3 to 5 bullets, each starting with a verb such as
+   Explain, Identify, Compare or Apply.
+4) Then one H2 per major topic in the material — aim for 3 to 6 of them, in a
+   sensible teaching order. Inside each:
+   - a short orienting paragraph (1–3 sentences)
+   - 2 to 6 bullets, each leading with a **bold term** and a supporting sentence
+   - where it helps: a worked example, a comparison table, or a numbered
+     procedure. Use H3 for a sub-part; never H2 inside a section.
+5) "## Glossary" — 6 to 10 terms as **Term** — one-line definition.
+6) "## Practice questions" — 5 questions (3 conceptual, 1 applied, 1 harder),
+   then an "### Answers" subsection with succinct answers.
+7) "## Key takeaways" — 3 to 6 short, memorable lines.
 
-FORMAT RULES (MANDATORY):
-- Output only the study guide in valid Markdown. No commentary outside the requested sections.
-- Use consistent heading hierarchy and spacing. Keep tone professional and clear.
-- Keep the executive summary and TL;DR short and sharp.
-- Avoid producing more than ~1200 words total.
+HEADINGS (THE INTERFACE READS THESE):
+
+- Every H2 is shown as a card the reader can collapse and as a chip in the
+  contents rail, which on a phone is a single scrolling row. Keep H2 titles
+  under about four words and make them say what the section covers.
+- No two H2 titles may repeat. They are turned into the links the contents
+  jumps to, and duplicates would point at the same place.
+- Do not write a table-of-contents section. The app builds the contents from
+  these headings; writing one out again would list itself.
+
+FORMAT:
+
+- Output only the guide. No commentary before or after it.
+- About 1200 words at most.
+- Tables render properly, so use one where a comparison is genuinely tabular:
+  a spec, a set of trade-offs, a bit layout. Keep cells short. Do not use a
+  table for prose.
+- Fenced code blocks are for code, pseudocode and command output only.
 - In ordinary prose write symbols as plain characters — → ≥ ≤ ≈ × ± — never as
   LaTeX commands. "Vacuum Tubes → Transistors", not "Vacuum Tubes $\\rightarrow$
   Transistors".
 - Reserve $...$ (inline) and $$...$$ (display) for real mathematical
   expressions such as $2^n \\ge 4{,}000{,}000$ or $\\lceil 22 / 8 \\rceil = 3$.
-  Never wrap a plain English word or a lone arrow in dollar signs.
+  A formula is maths and belongs in dollars, not in a code fence. Never wrap a
+  plain English word or a lone arrow in dollar signs.
 `;
 
+/**
+ * `term` is what the highlighter looks for: it is searched in the guide's text
+ * and struck in the card's mastery colour, so an approximation finds nothing.
+ */
 export const flashcardPrompt = (summary: string) => `
-Based on the following notes, create 8-12 high-quality flashcards for studying.
-Return a JSON array where each object has "front", "back", and "term" properties.
-Keep the front concise (question/term) and the back informative (answer/definition).
-"term" must be the exact key phrase from the notes that this card teaches, copied
-verbatim from the notes so it can be located in the text. If no single phrase fits,
-use an empty string.
+Based on the following notes, write 8 to 12 flashcards for study.
 
-Cards are shown as plain text, so write every symbol as a plain character — →
-≥ ≈ × ², and 2^n for powers. Never use LaTeX or dollar signs.
+Return a JSON array of objects with "front", "back" and "term".
 
-Notes:
-${summary.substring(0, 10000)}
-`;
+- "front" is one question or prompt. One fact per card: a card that asks for
+  three things fails as a unit and teaches you nothing about which one you lost.
+- "back" is the answer, complete but short.
+- "term" is the key phrase from the notes that the card teaches, copied
+  character for character from the text above so it can be found and
+  highlighted there. If no single phrase fits, use an empty string.
 
-export const quizPrompt = (summary: string) => `
-Based on the following notes, create a multiple-choice quiz with 5 challenging questions.
-Return a JSON array.
-
-Questions and options are shown as plain text, so write every symbol as a plain
-character — → ≥ ≈ × ², and 2^n for powers. Never use LaTeX or dollar signs.
+Cards are shown as plain text. No markdown, no bold, no bullet characters, and
+no LaTeX: write every symbol as itself — → ≥ ≈ × ², and 2^n for powers.
 
 Notes:
 ${summary.substring(0, 10000)}
 `;
 
+/**
+ * The reader picks the mix and the count, so the shape of the request changes
+ * per run. Only the fields for the chosen types are described: listing the
+ * essay fields when no essay was asked for invites the model to fill them in.
+ */
 export const customQuizPrompt = (
   summary: string,
   options: { types: ('mcq' | 'true_false' | 'essay')[]; count: number },
@@ -67,77 +95,103 @@ export const customQuizPrompt = (
   const typeGuidelines: string[] = [];
   if (options.types.includes('mcq')) {
     typeGuidelines.push(
-      '- Multiple Choice ("type": "mcq"): "question", "options" (array of 4 distinct choices), "correctAnswerIndex" (0-3), and "explanation".',
+      '- Multiple choice ("type": "mcq"): "question", "options" of exactly 4 distinct choices, "correctAnswerIndex" 0-3, "explanation". Every wrong option must be plausible to someone who half-knows the material.',
     );
   }
   if (options.types.includes('true_false')) {
     typeGuidelines.push(
-      '- True/False ("type": "true_false"): "question" (clear assertion to evaluate), "options": ["True", "False"], "correctAnswerIndex" (0 for True, 1 for False), and "explanation".',
+      '- True or false ("type": "true_false"): "question" as a single flat assertion, "options": ["True", "False"], "correctAnswerIndex" 0 for True or 1 for False, "explanation". Avoid giveaway words like always and never.',
     );
   }
   if (options.types.includes('essay')) {
     typeGuidelines.push(
-      '- Short Answer/Essay ("type": "essay"): "question" (conceptual prompt), "options": [], "correctAnswerIndex": 0, "sampleAnswer" (concise ideal 2-4 sentence explanation), "keyPoints" (array of 2-4 essential phrases/concepts to check), and "explanation".',
+      '- Written answer ("type": "essay"): "question" as an open prompt, "options": [], "correctAnswerIndex": 0 (unused, but required), "sampleAnswer" of 2-4 sentences, "keyPoints" of 2-4 phrases the reader marks themselves against, "explanation".',
     );
   }
 
+  const shape = [
+    '    "type": ' + options.types.map(t => `"${t}"`).join(' | '),
+    '    "question": string',
+    '    "options": string[]',
+    '    "correctAnswerIndex": number',
+    '    "explanation": string',
+    ...(options.types.includes('essay')
+      ? ['    "sampleAnswer": string', '    "keyPoints": string[]']
+      : []),
+  ].join(',\n');
+
   return `
-You are creating a comprehensive study quiz based on the notes below.
-Generate exactly ${options.count} question(s) matching the requested types:
+Write a quiz on the notes below. Produce exactly ${options.count} question(s),
+spread as evenly as the count allows across these types:
 ${typeGuidelines.join('\n')}
 
-Distribute the ${options.count} questions among the selected types (${options.types.join(', ')}).
+Every question must be answerable from the notes alone, and no two may test the
+same fact. Write for someone who has read the material once and wants to find
+out what did not stick, so prefer questions that need the idea applied over
+questions that need a definition repeated.
 
-Return a valid JSON array of objects following this schema:
+"explanation" is shown after marking for every question, including the ones
+answered correctly, so say why the answer is right rather than restating it.
+
+Return a valid JSON array of objects shaped like this:
 [
   {
-    "type": "mcq" | "true_false" | "essay",
-    "question": "string",
-    "options": ["string"],
-    "correctAnswerIndex": number,
-    "explanation": "string",
-    "sampleAnswer": "string",
-    "keyPoints": ["string"]
+${shape}
   }
 ]
 
-Do not use LaTeX or dollar signs. Plain characters only.
+Questions are shown as plain text: no markdown, no LaTeX, no dollar signs.
+Write symbols as themselves — → ≥ ≈ × ², and 2^n for powers.
 
 Notes:
 ${summary.substring(0, 10000)}
 `;
 };
 
+/**
+ * Replies render through the same markdown view as the guide, so the tutor has
+ * the same tools the notes do.
+ */
 export const tutorSystemInstruction = (
   context: string,
-) => `You are a dedicated and focused AI study assistant.
-Your sole purpose is to help the student master the material in the provided notes.
+) => `You are a study tutor working from one set of notes, printed below.
 
-STRICT GUIDELINES:
-1. ONLY answer questions related to the provided study notes, academic concepts, or learning strategies.
-2. If the user asks about unrelated topics, politely refuse: "I am focused on helping you study. Let's get back to the notes."
-3. Be concise, encouraging, and clear.
-4. Use formatting (bold, bullet points) to make explanations easy to read.
+GUIDELINES:
+1. Answer only from these notes, or on academic concepts and study technique
+   that bear on them. If asked about anything else, say so plainly: "I am
+   focused on helping you study. Let's get back to the notes."
+2. Keep it short. Two or three paragraphs is usually plenty, and a direct
+   question deserves a direct answer before any elaboration.
+3. Your replies are rendered as markdown. Bold, bullets, tables and fenced code
+   all work, so use them where they make an answer easier to read, and leave
+   them out where they would just decorate it.
+4. Refer to a section by the heading it has in the notes, so it can be found.
 5. Write symbols in prose as plain characters (→ ≥ ≈ ×). Dollar signs are for
    real maths only — $2^n$ renders, "$\\rightarrow$" just looks broken.
+6. If the notes do not cover what was asked, say that instead of filling the
+   gap from memory.
 
-STUDY NOTES CONTEXT:
+STUDY NOTES:
 ${context}`;
 
+/**
+ * The illustration is placed in a bordered frame on the page, in either
+ * palette, so it needs to carry its own light ground rather than assume one.
+ */
 export const imagePrompt = (
   topic: string,
-) => `Create a clean, aesthetic, educational illustration that clearly explains the concept of: ${topic}
+) => `Create a clean, educational illustration that explains this concept: ${topic}
 
-STYLE REQUIREMENTS:
-- Minimalist vector-art look
-- Flat-design shapes and smooth edges
-- Balanced composition with clean spacing
-- Modern, academic, student-friendly aesthetic
+STYLE:
+- Minimalist vector art, flat shapes, smooth edges
+- A plain white or very light background, no drop shadows and no border
+- Balanced composition with generous spacing
+- Modern and academic, the sort of diagram a good textbook would print
 
-CONTENT REQUIREMENTS:
-- Present the core idea of ${topic} visually and accurately
-- Use simple shapes, icons, labels, or annotation-style callouts
-- Keep all text minimal, clear, and easy to read
-- Avoid clutter and maintain strong contrast and visual hierarchy
+CONTENT:
+- Show the core idea of ${topic} accurately, not decoratively
+- Simple shapes, icons and short annotation labels
+- Keep text minimal and large enough to read when the image is half a page wide
+- Strong contrast and a clear visual hierarchy, no clutter
 
-OUTPUT: one single illustration, vector-style clarity, no unrelated objects.`;
+OUTPUT: one illustration, nothing unrelated in the frame.`;

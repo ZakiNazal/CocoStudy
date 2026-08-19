@@ -45,7 +45,13 @@
   --paper: #F4F3ED;
   --paper-2: #FFFFFF;
   --paper-3: #EAE8E1;
-  --button: #0052FF;
+
+  /* The brand blue. One definition, because it appears on buttons, active tabs,
+     focus borders and links across five files — and because it has to lift in
+     dark mode to stay readable as text, which a hardcoded hex cannot do. */
+  --accent: #0052FF;
+  --accent-strong: #0042D1;
+  --accent-wash: #F0F5FF;
   --ink: #111827;
   --ink-2: #4B5563;
   --ink-3: #8B8A85;
@@ -84,12 +90,31 @@
   --yellow-wash: #4D4412;
   --green-wash: #2F4A1E;
   --cyan-wash: #16414A;
+
+  /* #0052FF is a dark blue. It carries white text fine, but as *text* on a
+     near-black paper it falls to about 2:1, and the app uses it for active tab
+     labels and links. Lifted here so those stay legible. */
+  --accent: #5B93FF;
+  --accent-strong: #7FA9FF;
+  --accent-wash: #16233F;
 }
 
 html,
 body,
 #root {
   height: 100%;
+}
+
+/* A phone's viewport is not a fixed thing. The address bar collapses as you
+   scroll and `100%` keeps reporting the tall version, which leaves the pinned
+   composer and the quiz footer sitting underneath the browser's own chrome.
+   `dvh` measures what is actually on screen right now. */
+@supports (height: 100dvh) {
+  html,
+  body,
+  #root {
+    height: 100dvh;
+  }
 }
 
 body {
@@ -100,6 +125,50 @@ body {
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  /* The shell never scrolls, so a rubber-band drag or a pull-to-refresh at the
+     edge of a panel is always an accident. */
+  overscroll-behavior-y: none;
+}
+
+/* --- Touch --------------------------------------------------------- */
+
+/* Deliberately outside a layer, so it beats the type utilities. iOS zooms the
+   whole page in when a field under 16px takes focus and does not zoom back
+   out, which strands the layout half off screen. The scale is unchanged where
+   there is a cursor; only touch gets the floor. */
+@media (pointer: coarse) {
+  input,
+  textarea,
+  select {
+    font-size: 16px;
+  }
+}
+
+@layer base {
+  /* The app draws its own pressed states, so the grey flash a mobile browser
+     paints over a tap is a second, uninvited one. */
+  @media (pointer: coarse) {
+    button,
+    a,
+    [role='button'],
+    summary {
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+  }
+}
+
+/*
+ * Bottom-pinned bars clear the home indicator instead of hiding beneath it.
+ *
+ * The padding is one `max()` rather than this class plus a `sm:pb-8` beside
+ * it: an unlayered rule beats every Tailwind utility whatever the breakpoint,
+ * so the pair would silently hold the bar at the phone value on desktop too.
+ * Each element states its own resting padding in `--pb-base` and the inset
+ * only ever takes over when it is the larger of the two.
+ */
+.pb-safe {
+  padding-bottom: max(var(--pb-base, 1rem), env(safe-area-inset-bottom));
 }
 
 /* --- Type roles ---------------------------------------------------- */

@@ -208,14 +208,14 @@ export default function QuizView({
     return (
       <div className="flex h-full items-center justify-center px-6">
         <div className="max-w-md text-center">
-          <Sparkles className="mx-auto text-[#0052FF]" size={28} />
+          <Sparkles className="mx-auto text-[var(--accent)]" size={28} />
           <p className="display mt-3 text-xl font-bold">No quiz generated yet</p>
           <p className="mt-2 text-sm text-[var(--ink-2)]">
             Configure your question types and length to generate a personalized study quiz.
           </p>
           <button
             onClick={() => setIsCustomizeOpen(true)}
-            className="mt-5 inline-flex items-center gap-2 rounded-[4px] bg-[#0052FF] px-5 py-2.5 font-mono text-xs font-semibold uppercase tracking-[0.08em] text-white hover:bg-[#0047E0]"
+            className="mt-5 inline-flex items-center gap-2 rounded-[4px] bg-[var(--accent)] px-5 py-2.5 font-mono text-xs font-semibold uppercase tracking-[0.08em] text-white hover:bg-[var(--accent-strong)]"
           >
             <Sparkles size={14} />
             Customize & Generate
@@ -249,14 +249,14 @@ export default function QuizView({
       />
 
       {/* Status rail */}
-      <div className="shrink-0 border-b border-[var(--rule)] bg-[var(--paper-2)] px-6 py-3 sm:px-10">
+      <div className="shrink-0 border-b border-[var(--rule)] bg-[var(--paper-2)] px-4 py-3 sm:px-10">
         <div className="mx-auto max-w-2xl">
           <div className="flex items-baseline justify-between gap-4">
             <div className="flex items-center gap-3">
               <span className="label">{graded ? 'Marked' : 'Quiz'}</span>
               <button
                 onClick={() => setIsCustomizeOpen(true)}
-                className="inline-flex items-center gap-1.5 rounded-[4px] border border-[var(--rule)] bg-white dark:bg-[var(--paper)] px-2.5 py-1 font-mono text-2xs uppercase tracking-[0.08em] text-[var(--ink-2)] transition-colors hover:border-[#0052FF] hover:text-[#0052FF]"
+                className="inline-flex min-h-9 items-center gap-1.5 rounded-[4px] border border-[var(--rule)] bg-[var(--paper-2)] px-3 py-1 font-mono text-2xs uppercase tracking-[0.08em] text-[var(--ink-2)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)] sm:min-h-0 sm:px-2.5 dark:bg-[var(--paper)]"
               >
                 <SlidersHorizontal size={11} />
                 <span>Customize</span>
@@ -282,7 +282,7 @@ export default function QuizView({
         </div>
       </div>
 
-      <div ref={scroller} className="min-h-0 flex-1 overflow-y-auto px-6 py-8 sm:px-10">
+      <div ref={scroller} className="pb-safe [--pb-base:2rem] min-h-0 flex-1 overflow-y-auto px-4 pt-8 sm:px-10">
         <div className="mx-auto max-w-2xl">
           {generationError && (
             <div className="mb-6">
@@ -322,7 +322,7 @@ export default function QuizView({
               <div className="mt-6 flex flex-wrap items-center gap-3">
                 <button
                   onClick={handleTryAgainWithModal}
-                  className="inline-flex items-center gap-2 rounded-[4px] bg-[#0052FF] px-4 py-2 font-mono text-2xs font-semibold uppercase tracking-[0.1em] text-white transition-all hover:bg-[#0047E0] active:scale-[0.98]"
+                  className="inline-flex items-center gap-2 rounded-[4px] bg-[var(--accent)] px-4 py-2 font-mono text-2xs font-semibold uppercase tracking-[0.1em] text-white transition-all hover:bg-[var(--accent-strong)] active:scale-[0.98]"
                 >
                   <Sparkles size={13} />
                   Try Again (New Questions)
@@ -373,7 +373,7 @@ export default function QuizView({
                           </span>
                         )}
                         {qType === 'essay' && (
-                          <span className="inline-flex items-center gap-1 rounded-[3px] bg-[#0052FF]/10 px-1.5 py-0.5 font-mono text-2xs font-semibold text-[#0052FF]">
+                          <span className="inline-flex items-center gap-1 rounded-[3px] bg-[var(--accent)]/10 px-1.5 py-0.5 font-mono text-2xs font-semibold text-[var(--accent)]">
                             <Edit3 size={10} /> Essay / Short Answer
                           </span>
                         )}
@@ -479,8 +479,8 @@ export default function QuizView({
                                   text = 'var(--ink-3)';
                                 }
                               } else if (picked) {
-                                border = '#0052FF';
-                                wash = '#0052FF10';
+                                border = 'var(--accent)';
+                                wash = 'color-mix(in srgb, var(--accent) 6%, transparent)';
                                 text = 'var(--ink)';
                               }
 
@@ -519,7 +519,7 @@ export default function QuizView({
                                 setAnswers(next);
                               }}
                               placeholder="Type your explanation or response in your own words..."
-                              className="w-full rounded-[4px] border border-[var(--rule)] bg-white dark:bg-[var(--paper-2)] p-3 text-sm leading-relaxed text-[var(--ink)] placeholder:text-[var(--ink-3)] focus:border-[#0052FF] focus:outline-none disabled:bg-[var(--paper-3)]"
+                              className="w-full rounded-[4px] border border-[var(--rule)] bg-[var(--paper-2)] p-3 text-sm leading-relaxed text-[var(--ink)] placeholder:text-[var(--ink-3)] focus:border-[var(--accent)] focus:outline-none disabled:bg-[var(--paper-3)]"
                             />
 
                             {/* When graded, show Sample Answer, Key Points and Self-Grading */}
@@ -527,7 +527,7 @@ export default function QuizView({
                               <div className="rounded-[6px] border border-[var(--rule)] bg-[var(--paper-3)]/60 p-4 space-y-3">
                                 {question.sampleAnswer && (
                                   <div>
-                                    <span className="font-mono text-2xs font-bold uppercase tracking-[0.08em] text-[#0052FF]">
+                                    <span className="font-mono text-2xs font-bold uppercase tracking-[0.08em] text-[var(--accent)]">
                                       Model / Sample Answer
                                     </span>
                                     <p className="mt-1 text-sm leading-relaxed text-[var(--ink)]">
@@ -561,7 +561,7 @@ export default function QuizView({
                                       className={`inline-flex items-center gap-1 rounded-[3px] border px-2.5 py-1 font-mono text-2xs font-semibold transition-colors ${
                                         essayGrades[qi] === true
                                           ? 'border-[var(--green)] bg-[var(--green-wash)] text-[var(--ink)]'
-                                          : 'border-[var(--rule)] bg-white dark:bg-[var(--paper)] text-[var(--ink-2)] hover:border-[var(--green)]'
+                                          : 'border-[var(--rule)] bg-[var(--paper-2)] dark:bg-[var(--paper)] text-[var(--ink-2)] hover:border-[var(--green)]'
                                       }`}
                                     >
                                       <Check size={12} /> Got It
@@ -572,7 +572,7 @@ export default function QuizView({
                                       className={`inline-flex items-center gap-1 rounded-[3px] border px-2.5 py-1 font-mono text-2xs font-semibold transition-colors ${
                                         essayGrades[qi] === false
                                           ? 'border-[var(--pink)] bg-[var(--pink-wash)] text-[var(--ink)]'
-                                          : 'border-[var(--rule)] bg-white dark:bg-[var(--paper)] text-[var(--ink-2)] hover:border-[var(--pink)]'
+                                          : 'border-[var(--rule)] bg-[var(--paper-2)] dark:bg-[var(--paper)] text-[var(--ink-2)] hover:border-[var(--pink)]'
                                       }`}
                                     >
                                       <X size={12} /> Review
@@ -598,9 +598,10 @@ export default function QuizView({
             })}
           </ol>
 
-          {/* Submit button when not graded */}
+          {/* Submit button when not graded. Stacked on a phone: the count reads
+              above the button rather than squeezing it to half a thumb. */}
           {!graded && (
-            <div className="mt-12 flex items-center justify-between border-t border-[var(--rule)] pt-6">
+            <div className="mt-12 flex flex-col gap-3 border-t border-[var(--rule)] pt-6 sm:flex-row sm:items-center sm:justify-between">
               <span className="font-mono text-2xs text-[var(--ink-3)]">
                 {left > 0 ? `${left} unanswered remaining` : 'All questions answered'}
               </span>
@@ -608,7 +609,7 @@ export default function QuizView({
               <button
                 onClick={submit}
                 disabled={left === quiz.length}
-                className="inline-flex items-center gap-2 rounded-[4px] bg-[#0052FF] px-6 py-2.5 font-mono text-2xs font-semibold uppercase tracking-[0.1em] text-white transition-all hover:bg-[#0047E0] active:scale-[0.98] disabled:opacity-50"
+                className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-[4px] bg-[var(--accent)] px-6 font-mono text-2xs font-semibold uppercase tracking-[0.1em] text-white transition-all hover:bg-[var(--accent-strong)] active:scale-[0.98] disabled:opacity-50 sm:h-10 sm:w-auto"
               >
                 Submit Quiz
               </button>
