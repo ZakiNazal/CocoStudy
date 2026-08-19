@@ -1,8 +1,8 @@
 <div align="center">
 
-<img src="docs/mark.png" alt="CocoStudy Mark" width="96" />
+<img src="docs/mark.png" alt="CocoStudy Mark" width="150" />
 
-# CocoStudy 🥥✨
+# CocoStudy
 
 **Marked up as you learn.**
 
