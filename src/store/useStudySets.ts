@@ -152,6 +152,12 @@ export function useStudySets() {
     return demo;
   }, []);
 
+  /** Re-reads the library from storage. Restoring a backup writes to the
+   *  database directly, so the shell needs telling that it changed. */
+  const refresh = useCallback(async () => {
+    setSets(await getAllSets());
+  }, []);
+
   const clearError = useCallback(() => setError(null), []);
 
   return {
@@ -167,6 +173,7 @@ export function useStudySets() {
     removeSet,
     moveSetToFolder,
     unfileFolder,
+    refresh,
     clearError,
   };
 }

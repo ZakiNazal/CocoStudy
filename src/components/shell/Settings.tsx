@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
-import { Check, Download, Eye, EyeOff, Trash2 } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { AlertTriangle, Check, Download, Eye, EyeOff, Trash2, Upload } from 'lucide-react';
 import Sheet from '../ui/Sheet';
 import Button from '../ui/Button';
-import { resetDb } from '../../lib/db';
-import { buildExport, downloadJson, exportFilename } from '../../lib/export';
+import { getAllSets, getBlobsByKey, putBlobAt, putMeta, putSet, resetDb } from '../../lib/db';
+import { blobToBase64, buildExport, downloadJson, exportFilename, imageKeys } from '../../lib/export';
+import { base64ToBlob, mergeFolders, parseBackup, planMerge } from '../../lib/backup';
 import type { AppMeta, StudySet } from '../../types';
 
 const FOCUS_OPTIONS = [15, 25, 45, 60] as const;
@@ -15,6 +16,8 @@ interface SettingsProps {
   meta: AppMeta | null;
   onUpdate: (patch: Partial<AppMeta>) => Promise<void>;
   sets: StudySet[];
+  /** Called after a restore, so the library reflects it immediately. */
+  onRestored?: () => Promise<void> | void;
 }
 
 function Section({ label, children }: { label: string; children: React.ReactNode }) {
@@ -64,11 +67,13 @@ function Segmented<T extends string | number>({
   );
 }
 
-export default function Settings({ open, onClose, meta, onUpdate, sets }: SettingsProps) {
+export default function Settings({ open, onClose, meta, onUpdate, sets, onRestored }: SettingsProps) {
   const [keyDraft, setKeyDraft] = useState('');
   const [revealed, setRevealed] = useState(false);
   const [saved, setSaved] = useState(false);
   const [wipeDraft, setWipeDraft] = useState('');
+  const [restoreNote, setRestoreNote] = useState<{ tone: 'ok' | 'bad'; text: string } | null>(null);
+  const fileInput = useRef<HTMLInputElement>(null);
 
   const hasEnvKey = Boolean(import.meta.env.VITE_GEMINI_API_KEY);
 
@@ -80,6 +85,7 @@ export default function Settings({ open, onClose, meta, onUpdate, sets }: Settin
     setRevealed(false);
     setSaved(false);
     setWipeDraft('');
+    setRestoreNote(null);
   }, [open]);
 
   if (!meta) return null;
@@ -100,9 +106,50 @@ export default function Settings({ open, onClose, meta, onUpdate, sets }: Settin
     setSaved(false);
   };
 
-  const exportAll = () => {
+  /** Illustrations live in a separate store, so a backup has to fetch them. */
+  const exportAll = async () => {
     const now = new Date();
-    downloadJson(buildExport(sets, meta, now), exportFilename(now));
+    const blobs = await getBlobsByKey(imageKeys(sets));
+    const encoded: Record<string, string> = {};
+    for (const [key, blob] of Object.entries(blobs)) {
+      encoded[key] = await blobToBase64(blob);
+    }
+    downloadJson(buildExport(sets, meta, now, encoded), exportFilename(now));
+  };
+
+  const importBackup = async (file: File) => {
+    setRestoreNote(null);
+    try {
+      const parsed = parseBackup(await file.text());
+      // Counted against storage, not the rendered list, so the tally is true
+      // even if the two have drifted.
+      const plan = planMerge(await getAllSets(), parsed.sets);
+
+      // Images first: a set is written only once the pictures it points at
+      // are already in place, so a failure halfway cannot leave gaps.
+      for (const [key, data] of Object.entries(parsed.blobs)) {
+        await putBlobAt(key, base64ToBlob(data));
+      }
+      for (const set of parsed.sets) await putSet(set);
+      if (parsed.folders.length > 0) {
+        await putMeta({ folders: mergeFolders(meta.folders ?? [], parsed.folders) });
+      }
+
+      const parts = [
+        plan.added > 0 ? `${plan.added} added` : null,
+        plan.replaced > 0 ? `${plan.replaced} replaced` : null,
+        parsed.missingImages > 0
+          ? `${parsed.missingImages} image${parsed.missingImages === 1 ? '' : 's'} were not in the file`
+          : null,
+      ].filter(Boolean);
+      await onRestored?.();
+      setRestoreNote({ tone: 'ok', text: `Restored — ${parts.join(', ')}.` });
+    } catch (e) {
+      setRestoreNote({
+        tone: 'bad',
+        text: e instanceof Error ? e.message : 'That file could not be read.',
+      });
+    }
   };
 
   const wipe = async () => {
@@ -208,13 +255,56 @@ export default function Settings({ open, onClose, meta, onUpdate, sets }: Settin
         </Section>
 
         <Section label="Your data">
-          <Button size="sm" variant="ghost" onClick={exportAll} disabled={sets.length === 0}>
-            <Download size={14} />
-            Export {sets.length} {sets.length === 1 ? 'set' : 'sets'}
-          </Button>
-          <p className="mt-2 text-xs text-[var(--ink-2)]">
-            A JSON file with every set and your progress. The API key is left out.
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => void exportAll()}
+              disabled={sets.length === 0}
+            >
+              <Download size={14} />
+              Export {sets.length} {sets.length === 1 ? 'set' : 'sets'}
+            </Button>
+
+            <Button size="sm" variant="ghost" onClick={() => fileInput.current?.click()}>
+              <Upload size={14} />
+              Import backup
+            </Button>
+            <input
+              ref={fileInput}
+              type="file"
+              accept="application/json,.json"
+              className="sr-only"
+              aria-label="Choose a CocoStudy backup file"
+              onChange={e => {
+                const file = e.target.files?.[0];
+                // Cleared so picking the same file twice still fires a change.
+                e.target.value = '';
+                if (file) void importBackup(file);
+              }}
+            />
+          </div>
+
+          <p className="mt-2 text-xs leading-relaxed text-[var(--ink-2)]">
+            A JSON file with every set, your progress and any generated illustrations. The API
+            key is left out. Importing adds to what is here rather than replacing it — a set
+            that already exists is overwritten by the one in the file.
           </p>
+
+          {restoreNote && (
+            <p
+              className="mt-2 flex items-start gap-1.5 text-xs leading-relaxed"
+              style={{ color: restoreNote.tone === 'ok' ? 'var(--ink)' : 'var(--red)' }}
+              role="status"
+            >
+              {restoreNote.tone === 'ok' ? (
+                <Check size={13} className="mt-0.5 shrink-0" style={{ color: 'var(--green)' }} />
+              ) : (
+                <AlertTriangle size={13} className="mt-0.5 shrink-0" />
+              )}
+              {restoreNote.text}
+            </p>
+          )}
 
           <div className="mt-5 border-l-2 pl-4" style={{ borderLeftColor: 'var(--red)' }}>
             <p className="text-xs leading-relaxed text-[var(--ink)]">

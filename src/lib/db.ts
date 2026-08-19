@@ -99,6 +99,34 @@ export async function getBlob(key: string): Promise<Blob | undefined> {
   return (await db()).get('blobs', key);
 }
 
+/**
+ * The blobs behind a set's `images`, keyed as the set refers to them.
+ *
+ * A key with nothing behind it is dropped rather than returned as undefined:
+ * callers are writing a backup, and a missing image should shrink the file,
+ * not put a hole in it.
+ */
+export async function getBlobsByKey(keys: string[]): Promise<Record<string, Blob>> {
+  const database = await db();
+  const found: Record<string, Blob> = {};
+  await Promise.all(
+    keys.map(async key => {
+      const blob = await database.get('blobs', key);
+      if (blob) found[key] = blob;
+    }),
+  );
+  return found;
+}
+
+/**
+ * Writes a blob under a key chosen by the caller, which restoring a backup
+ * needs: the sets in that file already point at these keys, so generating
+ * fresh ones would orphan every image in it.
+ */
+export async function putBlobAt(key: string, blob: Blob): Promise<void> {
+  await (await db()).put('blobs', blob, key);
+}
+
 export async function countBlobs(): Promise<number> {
   return (await db()).count('blobs');
 }

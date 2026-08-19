@@ -21,6 +21,7 @@ export default function App() {
     updateSet,
     moveSetToFolder,
     unfileFolder,
+    refresh,
     clearError,
   } = useStudySets();
   const { meta, update: updateSettings } = useSettings();
@@ -156,6 +157,7 @@ export default function App() {
         meta={meta}
         onUpdate={updateSettings}
         sets={sets}
+        onRestored={refresh}
       />
     </div>
   );
