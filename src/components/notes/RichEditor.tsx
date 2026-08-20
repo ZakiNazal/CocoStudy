@@ -7,6 +7,7 @@ import { Placeholder } from '@tiptap/extensions';
 import {
   Bold,
   Code,
+  Heading1,
   Heading2,
   Heading3,
   Italic,
@@ -103,14 +104,21 @@ function Toolbar({ editor }: { editor: Editor }) {
       <span aria-hidden="true" className="mx-1 h-5 w-px bg-[var(--rule)]" />
 
       <Tool
-        label="Heading (Ctrl+Alt+2)"
+        label="Heading 1 (Ctrl+Alt+1 or '# ')"
+        isActive={editor.isActive('heading', { level: 1 })}
+        onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+      >
+        <Heading1 size={15} />
+      </Tool>
+      <Tool
+        label="Heading 2 (Ctrl+Alt+2 or '## ')"
         isActive={editor.isActive('heading', { level: 2 })}
         onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
       >
         <Heading2 size={15} />
       </Tool>
       <Tool
-        label="Sub-heading (Ctrl+Alt+3)"
+        label="Sub-heading (Ctrl+Alt+3 or '### ')"
         isActive={editor.isActive('heading', { level: 3 })}
         onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
       >
@@ -151,35 +159,35 @@ function Toolbar({ editor }: { editor: Editor }) {
       <span aria-hidden="true" className="mx-1 h-5 w-px bg-[var(--rule)]" />
 
       <Tool
-        label="Bullet list"
+        label="Bullet list (Ctrl+Shift+8 or '- ')"
         isActive={editor.isActive('bulletList')}
         onClick={() => editor.chain().focus().toggleBulletList().run()}
       >
         <List size={15} />
       </Tool>
       <Tool
-        label="Numbered list"
+        label="Numbered list (Ctrl+Shift+7 or '1. ')"
         isActive={editor.isActive('orderedList')}
         onClick={() => editor.chain().focus().toggleOrderedList().run()}
       >
         <ListOrdered size={15} />
       </Tool>
       <Tool
-        label="Task list"
+        label="Task list (Ctrl+Shift+9 or '[ ] ')"
         isActive={editor.isActive('taskList')}
         onClick={() => editor.chain().focus().toggleTaskList().run()}
       >
         <CheckSquare size={15} />
       </Tool>
       <Tool
-        label="Quote"
+        label="Quote (Type '> ')"
         isActive={editor.isActive('blockquote')}
         onClick={() => editor.chain().focus().toggleBlockquote().run()}
       >
         <Quote size={15} />
       </Tool>
       <Tool
-        label="Code block"
+        label="Code block (Type '```')"
         isActive={editor.isActive('codeBlock')}
         onClick={() => editor.chain().focus().toggleCodeBlock().run()}
       >
@@ -305,7 +313,9 @@ export default function RichEditor({ value, onChange }: RichEditorProps) {
       TaskList,
       TaskItem.configure({ nested: true }),
       TableKit.configure({ table: { resizable: false } }),
-      Placeholder.configure({ placeholder: 'Write your notes…' }),
+      Placeholder.configure({
+        placeholder: 'Write your notes… (Type "- " for bullet list, "1. " for numbered list, "## " for heading)',
+      }),
     ],
     content: markdownToHtml(value),
     editorProps: {

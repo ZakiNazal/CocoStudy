@@ -240,28 +240,47 @@ body {
       var(--rule) 1.6rem);
 }
 
-/* A heading an outline link has just jumped to, struck with the marker for a
-   beat so the eye finds where it landed. */
+/* A heading or card an outline link has just jumped to, highlighted with an
+   elegant pulse so the eye quickly and gracefully finds where it landed. */
 @keyframes struck {
-  from {
-    background-color: var(--yellow-wash);
-    box-shadow: -0.35rem 0 0 var(--yellow-wash), 0.35rem 0 0 var(--yellow-wash);
+  0% {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent), 0 4px 16px color-mix(in srgb, var(--accent) 12%, transparent);
   }
+  30% {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent), 0 4px 16px color-mix(in srgb, var(--accent) 10%, transparent);
+  }
+  100% {
+    border-color: var(--rule);
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
 
-  to {
+@keyframes struck-heading {
+  0% {
+    background-color: var(--yellow-wash);
+    box-shadow: 0 0 0 4px var(--yellow-wash);
+    border-radius: 4px;
+  }
+  40% {
+    background-color: var(--yellow-wash);
+    box-shadow: 0 0 0 4px var(--yellow-wash);
+    border-radius: 4px;
+  }
+  100% {
     background-color: transparent;
-    box-shadow: -0.35rem 0 0 transparent, 0.35rem 0 0 transparent;
+    box-shadow: 0 0 0 0 transparent;
+    border-radius: 4px;
   }
 }
 
 .struck {
-  animation: struck 1.4s ease-out;
+  animation: struck 1.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .struck {
-    animation: none;
-  }
+:is(h1, h2, h3, h4).struck {
+  animation: struck-heading 1.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* --- Focus --------------------------------------------------------- */
@@ -311,7 +330,6 @@ body {
 /* --- Motion -------------------------------------------------------- */
 
 @media (prefers-reduced-motion: reduce) {
-
   *,
   *::before,
   *::after {
@@ -320,7 +338,13 @@ body {
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
   }
+
+  .struck,
+  :is(h1, h2, h3, h4).struck {
+    animation: none;
+  }
 }
+
 /* --- The document editor ------------------------------------------- */
 
 /*
@@ -363,21 +387,40 @@ body {
 
 .prose-notes ul,
 .prose-notes ol {
-  padding-left: 1.4em;
+  padding-left: 1.6rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
 }
-.prose-notes ul { list-style: disc; }
-.prose-notes ol { list-style: decimal; }
-.prose-notes li { margin-top: 0.25em; }
-.prose-notes li p { margin: 0; }
+.prose-notes ul {
+  list-style-type: disc !important;
+}
+.prose-notes ol {
+  list-style-type: decimal !important;
+}
+.prose-notes ul ul {
+  list-style-type: circle !important;
+}
+.prose-notes ol ol {
+  list-style-type: lower-alpha !important;
+}
+.prose-notes li {
+  margin-top: 0.25rem;
+  margin-bottom: 0.25rem;
+  line-height: 1.7;
+}
+.prose-notes li p {
+  margin: 0;
+}
 
 .prose-notes ul[data-type='taskList'] {
-  list-style: none;
+  list-style-type: none !important;
   padding-left: 0;
 }
 .prose-notes ul[data-type='taskList'] li {
   display: flex;
   align-items: flex-start;
   gap: 0.55em;
+  list-style: none !important;
 }
 .prose-notes ul[data-type='taskList'] input[type='checkbox'] {
   margin-top: 0.42em;

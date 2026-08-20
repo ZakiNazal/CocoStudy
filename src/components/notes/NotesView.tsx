@@ -268,6 +268,21 @@ export default function NotesView({ set, onUpdateSet }: NotesViewProps) {
     setEditing(false);
   };
 
+  useEffect(() => {
+    if (!editing) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        handleSave();
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        handleCancel();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [editing, titleDraft, bodyDraft, set]);
+
 
 
 
@@ -281,11 +296,11 @@ export default function NotesView({ set, onUpdateSet }: NotesViewProps) {
   }, [titleDraft, bodyDraft]);
 
   const toolButton =
-    'flex min-h-11 items-center gap-1.5 rounded-[4px] border border-[var(--rule)] px-4 py-1.5 font-mono text-2xs uppercase tracking-[0.1em] text-[var(--ink-2)] transition-colors duration-150 hover:border-[var(--ink)] hover:text-[var(--ink)] disabled:opacity-50 sm:min-h-0 sm:px-3';
+    'flex h-9 w-full items-center justify-center gap-1.5 rounded-[4px] border border-[var(--rule)] px-3 font-mono text-2xs uppercase tracking-[0.1em] text-[var(--ink-2)] transition-colors duration-150 hover:border-[var(--ink)] hover:text-[var(--ink)] disabled:opacity-50 active:scale-[0.98]';
 
   return (
-    <div ref={scrollContainer} className="pb-safe [--pb-base:2rem] h-full overflow-y-auto px-4 sm:px-10">
-      <div className="mx-auto max-w-5xl pt-8">
+    <div ref={scrollContainer} className="pb-safe [--pb-base:3rem] h-full overflow-y-auto px-4 sm:px-8 lg:px-12 xl:px-16">
+      <div className="mx-auto w-full max-w-[1400px] pt-6 sm:pt-8 lg:pt-10">
         {imageError && (
           <div className="mb-6">
             <Banner tone="error" onDismiss={() => setImageError(null)}>
@@ -295,7 +310,7 @@ export default function NotesView({ set, onUpdateSet }: NotesViewProps) {
         )}
 
         {!editing ? (
-          <div className="flex flex-col lg:flex-row items-start gap-8 lg:gap-12">
+          <div className="flex flex-col lg:flex-row items-start gap-8 lg:gap-10 xl:gap-14">
             {/*
              * The contents, lying down as a row of section tabs and pinned to
              * the top of the pane so a jump is always one thumb away.
@@ -332,14 +347,14 @@ export default function NotesView({ set, onUpdateSet }: NotesViewProps) {
             )}
 
             {/* Main Content (Left) */}
-            <div className="order-3 min-w-0 flex-1 w-full lg:order-none">
+            <div className="order-3 min-w-0 flex-1 w-full lg:order-1">
               {/* Document Masthead */}
-              <header className="mb-8">
-                <h1 className="display text-3xl sm:text-4xl font-extrabold text-[var(--ink)] leading-tight">
+              <header className="mb-8 lg:mb-10">
+                <h1 className="display text-3xl sm:text-4xl lg:text-[2.65rem] font-extrabold text-[var(--ink)] leading-[1.18] tracking-tight">
                   {title}
                 </h1>
                 {lead && (
-                  <div className="mt-3 text-base text-[var(--ink-2)] leading-relaxed">
+                  <div className="mt-4 text-base sm:text-lg text-[var(--ink-2)] leading-relaxed max-w-4xl">
                     <MarkdownView>{lead}</MarkdownView>
                   </div>
                 )}
@@ -349,13 +364,13 @@ export default function NotesView({ set, onUpdateSet }: NotesViewProps) {
               {imageUrls.length > 0 && (
                 <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
                   {imageUrls.map((url, i) => (
-                    <figure key={url} className="border border-[var(--rule)] bg-[var(--paper-2)]">
+                    <figure key={url} className="overflow-hidden rounded-[6px] border border-[var(--rule)] bg-[var(--paper-2)] shadow-2xs">
                       <img
                         src={url}
                         alt={`Illustration ${i + 1} for ${set.title}`}
                         className="w-full"
                       />
-                      <figcaption className="label border-t border-[var(--rule)] px-3 py-1.5">
+                      <figcaption className="label border-t border-[var(--rule)] px-3 py-1.5 bg-[var(--paper-3)]/40">
                         Generated
                       </figcaption>
                     </figure>
@@ -365,28 +380,30 @@ export default function NotesView({ set, onUpdateSet }: NotesViewProps) {
 
               {/* Content Sections as Collapsible Cards */}
               {sections.length > 0 ? (
-                <div className="space-y-4">
+                <div className="space-y-4 sm:space-y-5">
                   {sections.map(section => {
                     const isOpen = !collapsedSections.has(section.id);
                     return (
                       <section
                         key={section.id}
                         id={section.id}
-                        className="rounded-[6px] border border-[var(--rule)] bg-[var(--paper-2)] overflow-hidden transition-colors"
+                        className="rounded-[8px] border border-[var(--rule)] bg-[var(--paper-2)] overflow-hidden shadow-2xs transition-all duration-150 hover:border-[var(--ink-3)]/40"
                       >
                         <button
                           onClick={() => toggleSection(section.id)}
                           aria-expanded={isOpen}
-                          className="flex w-full items-center justify-between px-6 py-4 text-left transition-colors hover:bg-[var(--rule)]/20"
+                          className="group flex w-full items-center justify-between px-6 sm:px-8 py-3.5 sm:py-4 text-left transition-colors hover:bg-[var(--paper-3)]/30"
                         >
-                          <h2 className="text-lg font-bold text-[var(--ink)]">{section.title}</h2>
-                          <div className="text-[var(--ink-3)] transition-transform duration-200">
+                          <h2 className="text-lg sm:text-xl font-bold text-[var(--ink)] tracking-tight group-hover:text-[var(--accent)] transition-colors">
+                            {section.title}
+                          </h2>
+                          <div className="flex h-7 w-7 items-center justify-center rounded-[4px] text-[var(--ink-3)] transition-colors group-hover:bg-[var(--paper-3)] group-hover:text-[var(--ink)]">
                             {isOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
                           </div>
                         </button>
 
                         {isOpen && (
-                          <div className="border-t border-[var(--rule)] px-6 py-6 text-sm leading-relaxed text-[var(--ink)]">
+                          <div className="border-t border-[var(--rule)] px-6 sm:px-8 pt-4 pb-5 sm:pt-4.5 sm:pb-6 text-sm sm:text-base leading-relaxed text-[var(--ink)] bg-[var(--paper-2)]">
                             <MarkdownView>{section.content}</MarkdownView>
                           </div>
                         )}
@@ -395,20 +412,20 @@ export default function NotesView({ set, onUpdateSet }: NotesViewProps) {
                   })}
                 </div>
               ) : (
-                <div className="rounded-[6px] border border-[var(--rule)] bg-[var(--paper-2)] p-6">
+                <div className="rounded-[8px] border border-[var(--rule)] bg-[var(--paper-2)] p-6 sm:p-8 shadow-2xs">
                   <MarkdownView>{set.summary}</MarkdownView>
                 </div>
               )}
             </div>
 
-            {/* Study Guide Sidebar (Right - Sticky) */}
-            <aside className="order-1 w-full shrink-0 lg:order-none lg:sticky lg:top-0 lg:w-56">
+            {/* Study Guide Sidebar (Right - Sticky & Polished) */}
+            <aside className="order-1 lg:order-2 w-full shrink-0 lg:sticky lg:top-4 lg:w-64 xl:w-72 rounded-[8px] border border-[var(--rule)] bg-[var(--paper-2)]/90 backdrop-blur-xs p-5 shadow-xs">
               <div className="border-b border-[var(--rule)] pb-4">
-                <span className="font-mono text-2xs uppercase tracking-[0.1em] text-[var(--ink-3)] font-semibold">
+                <span className="font-mono text-2xs uppercase tracking-[0.12em] text-[var(--ink-3)] font-semibold">
                   Study Guide
                 </span>
 
-                <div className="mt-3 flex flex-wrap gap-2">
+                <div className="mt-3 grid grid-cols-2 gap-2">
                   <button onClick={visualise} disabled={imageBusy} className={toolButton}>
                     {imageBusy ? (
                       <Loader2 size={13} className="animate-spin" />
@@ -426,14 +443,14 @@ export default function NotesView({ set, onUpdateSet }: NotesViewProps) {
 
               {/* The rail's own copy of the contents, beside the guide. */}
               {sections.length > 0 && (
-                <div className="mt-6 hidden lg:block">
+                <div className="mt-5 hidden lg:block">
                   <div className="flex items-center justify-between mb-3">
-                    <span className="font-mono text-2xs uppercase tracking-[0.1em] text-[var(--ink-3)] font-semibold">
+                    <span className="font-mono text-2xs uppercase tracking-[0.12em] text-[var(--ink-3)] font-semibold">
                       Outline
                     </span>
                     <button
                       onClick={toggleCollapseAll}
-                      className="-my-2 flex items-center gap-1 py-2 font-mono text-2xs uppercase tracking-[0.08em] text-[var(--ink-3)] transition-colors hover:text-[var(--ink)]"
+                      className="-my-1 flex items-center gap-1 rounded px-1.5 py-1 font-mono text-2xs uppercase tracking-[0.08em] text-[var(--ink-3)] transition-colors hover:bg-[var(--paper-3)] hover:text-[var(--ink)]"
                       title={allCollapsed ? 'Expand all sections' : 'Collapse all sections'}
                     >
                       {allCollapsed ? <ChevronsDown size={12} /> : <ChevronsUp size={12} />}
@@ -441,20 +458,23 @@ export default function NotesView({ set, onUpdateSet }: NotesViewProps) {
                     </button>
                   </div>
 
-                  <nav className="flex flex-col space-y-3" aria-label="Table of contents">
-                    {sections.map(section => (
-                      <button
-                        key={section.id}
-                        onClick={() => scrollToSection(section.id)}
-                        className={`text-left text-sm font-bold transition-colors duration-150 ${
-                          activeSectionId === section.id
-                            ? 'text-[var(--accent)]'
-                            : 'text-[var(--ink)] hover:text-[var(--accent)]'
-                        }`}
-                      >
-                        {section.title}
-                      </button>
-                    ))}
+                  <nav className="flex flex-col space-y-1" aria-label="Table of contents">
+                    {sections.map(section => {
+                      const isActive = activeSectionId === section.id;
+                      return (
+                        <button
+                          key={section.id}
+                          onClick={() => scrollToSection(section.id)}
+                          className={`group flex items-center justify-between rounded-[4px] px-2.5 py-1.5 text-left text-xs font-semibold transition-colors duration-150 ${
+                            isActive
+                              ? 'bg-[var(--accent)]/10 text-[var(--accent)] font-bold'
+                              : 'text-[var(--ink-2)] hover:bg-[var(--paper-3)]/60 hover:text-[var(--ink)]'
+                          }`}
+                        >
+                          <span className="truncate">{section.title}</span>
+                        </button>
+                      );
+                    })}
                   </nav>
                 </div>
               )}
@@ -551,8 +571,15 @@ export default function NotesView({ set, onUpdateSet }: NotesViewProps) {
                   */}
                 <RichEditor value={bodyDraft} onChange={setBodyDraft} />
 
-                <div className="flex items-center justify-between text-2xs text-[var(--ink-3)] px-1">
-                  <span>Ctrl+B bold · Ctrl+I italic · Ctrl+Z undo · markdown shortcuts still work as you type</span>
+                <div className="flex flex-wrap items-center justify-between gap-2 px-1 text-2xs text-[var(--ink-3)] font-mono">
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                    <span><strong className="text-[var(--ink-2)]">-</strong> or <strong className="text-[var(--ink-2)]">*</strong> bullet list</span>
+                    <span><strong className="text-[var(--ink-2)]">1.</strong> numbered list</span>
+                    <span><strong className="text-[var(--ink-2)]">##</strong> heading</span>
+                    <span><strong className="text-[var(--ink-2)]">&gt;</strong> quote</span>
+                    <span><strong className="text-[var(--ink-2)]">Ctrl+S</strong> save</span>
+                  </div>
+                  <span>Tab indent · Shift+Tab outdent</span>
                 </div>
               </div>
             ) : (

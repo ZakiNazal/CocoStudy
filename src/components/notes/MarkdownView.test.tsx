@@ -86,6 +86,24 @@ describe('MarkdownView GFM', () => {
     expect(html).not.toContain('[x]');
   });
 
+  it('renders bullet lists with standard ul and li elements', () => {
+    const html = render('- Bullet 1\n- Bullet 2\n- Bullet 3');
+    expect(html).toContain('<ul');
+    expect(html).toContain('list-disc');
+    expect(html.match(/<li/g)).toHaveLength(3);
+    expect(html).toContain('Bullet 1');
+    expect(html).toContain('Bullet 2');
+  });
+
+  it('renders numbered lists with standard ol and li elements', () => {
+    const html = render('1. First item\n2. Second item\n3. Third item');
+    expect(html).toContain('<ol');
+    expect(html).toContain('list-decimal');
+    expect(html.match(/<li/g)).toHaveLength(3);
+    expect(html).toContain('First item');
+    expect(html).toContain('Second item');
+  });
+
   it('renders strikethrough', () => {
     expect(render('~~wrong~~ right')).toContain('<del');
   });

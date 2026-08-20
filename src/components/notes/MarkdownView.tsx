@@ -62,36 +62,47 @@ const components: Components = {
   // `id` is the slug rehype-slug puts on the heading — dropping it here would
   // leave the outline links with nothing to find.
   h1: ({ children, id }) => (
-    <h1 id={id} className="display mt-12 text-2xl first:mt-0 sm:text-3xl">
+    <h1 id={id} className="display mt-10 first:mt-0 text-2xl sm:text-3xl">
       {children}
     </h1>
   ),
   h2: ({ children, id }) => (
-    <h2 id={id} className="display mt-10 border-b border-[var(--rule)] pb-2 text-xl">
+    <h2 id={id} className="display mt-8 first:mt-0 border-b border-[var(--rule)] pb-2 text-xl">
       {children}
     </h2>
   ),
   h3: ({ children, id }) => (
-    <h3 id={id} className="display mt-7 text-base uppercase tracking-[0.06em]">
+    <h3 id={id} className="display mt-6 first:mt-0 text-base uppercase tracking-[0.06em]">
       {children}
     </h3>
   ),
-  p: ({ children }) => <p className="mt-4 leading-[1.75] text-[var(--ink-2)]">{children}</p>,
+  p: ({ children }) => <p className="mt-3.5 first:mt-0 leading-[1.75] text-[var(--ink-2)]">{children}</p>,
   strong: ({ children }) => (
     <strong className="font-semibold text-[var(--ink)]">{children}</strong>
   ),
   em: ({ children }) => <em className="italic text-[var(--ink)]">{children}</em>,
-  ul: ({ children }) => <ul className="mt-4 space-y-2">{children}</ul>,
-  ol: ({ children }) => <ol className="mt-4 space-y-2">{children}</ol>,
-  // A task item carries its own checkbox, so it drops the dash the other
-  // bullets wear. `task-list-item` is the class remark-gfm puts on them.
+  ul: ({ children }) => (
+    <ul className="mt-3.5 first:mt-0 list-disc pl-6 space-y-1.5 marker:text-[var(--ink-3)] text-[var(--ink-2)]">
+      {children}
+    </ul>
+  ),
+  ol: ({ children, start }) => (
+    <ol
+      start={start}
+      className="mt-3.5 first:mt-0 list-decimal pl-6 space-y-1.5 marker:font-mono marker:text-xs marker:text-[var(--ink-3)] text-[var(--ink-2)]"
+    >
+      {children}
+    </ol>
+  ),
+  // A task item carries its own checkbox, so it drops standard bullets/numbers.
+  // `task-list-item` is the class remark-gfm puts on them.
   li: ({ children, className }) =>
     className?.includes('task-list-item') ? (
-      <li className="flex items-baseline gap-2 leading-[1.7] text-[var(--ink-2)]">{children}</li>
-    ) : (
-      <li className="relative pl-5 leading-[1.7] text-[var(--ink-2)] before:absolute before:left-0 before:top-[0.7em] before:h-px before:w-2.5 before:bg-[var(--ink-3)]">
+      <li className="list-none -ml-6 flex items-baseline gap-2 leading-[1.7] text-[var(--ink-2)]">
         {children}
       </li>
+    ) : (
+      <li className="leading-[1.7] text-[var(--ink-2)] pl-0.5">{children}</li>
     ),
   input: ({ checked, type }) =>
     type === 'checkbox' ? (
@@ -106,7 +117,7 @@ const components: Components = {
     <del className="text-[var(--ink-3)] line-through">{children}</del>
   ),
   blockquote: ({ children }) => (
-    <blockquote className="mt-5 border-l-2 border-[var(--ink)] pl-4 text-[var(--ink)]">
+    <blockquote className="mt-4 first:mt-0 border-l-2 border-[var(--ink)] pl-4 text-[var(--ink)]">
       {children}
     </blockquote>
   ),
@@ -116,7 +127,7 @@ const components: Components = {
     </code>
   ),
   pre: ({ children }) => (
-    <pre className="my-5 overflow-x-auto bg-[var(--paper-3)] p-4 font-mono text-xs sm:text-sm leading-relaxed text-[var(--ink)]">
+    <pre className="my-4 first:mt-0 overflow-x-auto bg-[var(--paper-3)] p-4 font-mono text-xs sm:text-sm leading-relaxed text-[var(--ink)]">
       {children}
     </pre>
   ),
@@ -144,7 +155,7 @@ const components: Components = {
   // A register or bit-layout table is wider than the column it sits in, so the
   // cells hold their line and the table scrolls sideways inside its own box.
   table: ({ children }) => (
-    <div className="mt-5 overflow-x-auto border border-[var(--rule)]">
+    <div className="mt-4 first:mt-0 overflow-x-auto border border-[var(--rule)]">
       <table className="min-w-full border-collapse text-sm">{children}</table>
     </div>
   ),

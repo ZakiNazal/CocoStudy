@@ -10,6 +10,7 @@ import {
   Search,
   Settings,
   Sun,
+  Trash2,
   X,
 } from 'lucide-react';
 import { gsap, DUR, EASE, STAGGER, shouldAnimate } from '../../lib/motion';
@@ -31,6 +32,7 @@ interface SidebarProps {
   onCreateFolder: (name: string) => void;
   onRenameFolder: (id: string, name: string) => void;
   onDeleteFolder: (id: string) => void;
+  onDeleteSet: (id: string) => void;
   onMoveSet: (setId: string, folderId: string | null) => void;
   theme: Theme;
   onChangeTheme: (theme: Theme) => void;
@@ -47,6 +49,9 @@ const nameInput =
 const menuItem =
   'flex w-full items-center gap-2 px-3 py-1.5 text-left font-mono text-2xs uppercase tracking-[0.1em] text-[var(--ink-2)] transition-colors duration-100 hover:bg-[var(--paper-3)] hover:text-[var(--ink)]';
 
+const dangerMenuItem =
+  'flex w-full items-center gap-2 px-3 py-1.5 text-left font-mono text-2xs uppercase tracking-[0.1em] text-[var(--red)] transition-colors duration-100 hover:bg-[var(--red)]/10 hover:text-[var(--red)]';
+
 function dueCount(set: StudySet, now: Date): number {
   return set.flashcards.filter(c => isDue(c.srs, now)).length;
 }
@@ -62,6 +67,7 @@ export default function Sidebar({
   onCreateFolder,
   onRenameFolder,
   onDeleteFolder,
+  onDeleteSet,
   onMoveSet,
   theme,
   onChangeTheme,
@@ -248,6 +254,17 @@ export default function Sidebar({
                   No folders yet.
                 </p>
               )}
+              <div className="my-1 border-t border-[var(--rule)]" />
+              <button
+                onClick={() => {
+                  onDeleteSet(set.id);
+                  closeMenus();
+                }}
+                className={dangerMenuItem}
+              >
+                <Trash2 size={13} />
+                <span>Delete</span>
+              </button>
             </div>
           </>
         )}
@@ -345,9 +362,10 @@ export default function Sidebar({
                     onDeleteFolder(folder.id);
                     closeMenus();
                   }}
-                  className={menuItem}
+                  className={dangerMenuItem}
                 >
-                  Delete
+                  <Trash2 size={13} />
+                  <span>Delete</span>
                 </button>
               </div>
             </>

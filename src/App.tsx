@@ -19,6 +19,7 @@ export default function App() {
     gradeCard,
     loadDemoSet,
     updateSet,
+    removeSet,
     moveSetToFolder,
     unfileFolder,
     refresh,
@@ -55,6 +56,13 @@ export default function App() {
     await updateSettings({ folders: removeFolder(folders, id) });
   };
 
+  const handleDeleteSet = async (id: string) => {
+    await removeSet(id);
+    if (activeSetId === id) {
+      setActiveSetId(null);
+    }
+  };
+
   const handleProcess = async (content: string | File) => {
     const created =
       content instanceof File ? await createFromFile(content) : await createFromText(content);
@@ -87,6 +95,7 @@ export default function App() {
             void updateSettings({ folders: renameFolder(folders, id, name) })
           }
           onDeleteFolder={id => void handleDeleteFolder(id)}
+          onDeleteSet={id => void handleDeleteSet(id)}
           onMoveSet={(setId, folderId) => void moveSetToFolder(setId, folderId)}
           activeSetId={activeSetId}
           onSelectSet={id => {
