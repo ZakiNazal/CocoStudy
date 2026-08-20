@@ -1,26 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Bold,
-  CheckSquare,
   ChevronDown,
   ChevronUp,
   ChevronsDown,
   ChevronsUp,
-  Code,
   Edit3,
   Eye,
-  FileCode,
-  Heading2,
-  Heading3,
   Image as ImageIcon,
-  Italic,
-  List,
-  ListOrdered,
   Loader2,
-  Minus,
   PenLine,
-  PlusCircle,
-  Quote,
   Save,
   X,
 } from 'lucide-react';
@@ -29,6 +17,7 @@ import { slugify, stickyOffset } from '../../lib/anchors';
 import { shouldAnimate } from '../../lib/motion';
 import { generateStudyImage } from '../../services/ai';
 import MarkdownView from './MarkdownView';
+import RichEditor from './RichEditor';
 import Banner from '../ui/Banner';
 import type { StudySet } from '../../types';
 
@@ -124,8 +113,9 @@ export default function NotesView({ set, onUpdateSet }: NotesViewProps) {
   const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set());
   const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
 
-  const textarea = useRef<HTMLTextAreaElement>(null);
+
   const scrollContainer = useRef<HTMLDivElement>(null);
+
 
   const { title, lead, sections } = useMemo(
     () => parseNoteSections(set.summary, set.title),
@@ -278,52 +268,8 @@ export default function NotesView({ set, onUpdateSet }: NotesViewProps) {
     setEditing(false);
   };
 
-  const wrapSelection = (prefix: string, suffix = prefix) => {
-    const el = textarea.current;
-    if (!el) return;
-    const { selectionStart: start, selectionEnd: end, value } = el;
-    const selected = value.slice(start, end);
-    const replacement = `${prefix}${selected || 'text'}${suffix}`;
-    const next = `${value.slice(0, start)}${replacement}${value.slice(end)}`;
-    setBodyDraft(next);
-    requestAnimationFrame(() => {
-      el.focus();
-      if (selected) {
-        el.setSelectionRange(start + prefix.length, end + prefix.length);
-      } else {
-        el.setSelectionRange(start + prefix.length, start + prefix.length + 4);
-      }
-    });
-  };
 
-  const insertLinePrefix = (prefix: string) => {
-    const el = textarea.current;
-    if (!el) return;
-    const { selectionStart: start, selectionEnd: end, value } = el;
-    const lastNewline = value.lastIndexOf('\n', start - 1);
-    const lineStart = lastNewline === -1 ? 0 : lastNewline + 1;
-    const next = `${value.slice(0, lineStart)}${prefix}${value.slice(lineStart)}`;
-    setBodyDraft(next);
-    requestAnimationFrame(() => {
-      el.focus();
-      el.setSelectionRange(start + prefix.length, end + prefix.length);
-    });
-  };
 
-  const insertBlock = (block: string) => {
-    const el = textarea.current;
-    if (!el) return;
-    const { selectionStart: start, selectionEnd: end, value } = el;
-    const prefix = start > 0 && !value.slice(0, start).endsWith('\n\n') ? '\n\n' : '';
-    const suffix = !value.slice(end).startsWith('\n\n') ? '\n\n' : '';
-    const insertion = `${prefix}${block}${suffix}`;
-    const next = `${value.slice(0, start)}${insertion}${value.slice(end)}`;
-    setBodyDraft(next);
-    requestAnimationFrame(() => {
-      el.focus();
-      el.setSelectionRange(start + insertion.length, start + insertion.length);
-    });
-  };
 
   const wordCount = useMemo(() => {
     const text = `${titleDraft} ${bodyDraft}`.trim();
@@ -597,137 +543,16 @@ export default function NotesView({ set, onUpdateSet }: NotesViewProps) {
                   </span>
                 </div>
 
-                {/* Comprehensive Formatting Toolbar */}
-                <div className="flex flex-wrap items-center gap-1 rounded-[6px] border border-[var(--rule)] bg-[var(--paper-2)] p-1.5 shadow-2xs">
-                  {/* Headings */}
-                  <button
-                    type="button"
-                    onClick={() => insertLinePrefix('## ')}
-                    title="Section Heading (H2)"
-                    className="flex h-7 items-center gap-1 rounded-[3px] px-2 text-2xs font-bold text-[var(--ink-2)] hover:bg-[var(--paper-3)] hover:text-[var(--ink)]"
-                  >
-                    <Heading2 size={14} />
-                    <span>H2</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => insertLinePrefix('### ')}
-                    title="Sub-heading (H3)"
-                    className="flex h-7 items-center gap-1 rounded-[3px] px-2 text-2xs font-bold text-[var(--ink-2)] hover:bg-[var(--paper-3)] hover:text-[var(--ink)]"
-                  >
-                    <Heading3 size={14} />
-                    <span>H3</span>
-                  </button>
-
-                  <div className="h-4 w-px bg-[var(--rule)] mx-1" />
-
-                  {/* Inline Text Styles */}
-                  <button
-                    type="button"
-                    onClick={() => wrapSelection('**', '**')}
-                    title="Bold (**text**)"
-                    className="flex h-7 w-7 items-center justify-center rounded-[3px] text-[var(--ink-2)] hover:bg-[var(--paper-3)] hover:text-[var(--ink)]"
-                  >
-                    <Bold size={14} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => wrapSelection('*', '*')}
-                    title="Italic (*text*)"
-                    className="flex h-7 w-7 items-center justify-center rounded-[3px] text-[var(--ink-2)] hover:bg-[var(--paper-3)] hover:text-[var(--ink)]"
-                  >
-                    <Italic size={14} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => wrapSelection('`', '`')}
-                    title="Inline Code (`code`)"
-                    className="flex h-7 w-7 items-center justify-center rounded-[3px] text-[var(--ink-2)] hover:bg-[var(--paper-3)] hover:text-[var(--ink)]"
-                  >
-                    <Code size={14} />
-                  </button>
-
-                  <div className="h-4 w-px bg-[var(--rule)] mx-1" />
-
-                  {/* Lists */}
-                  <button
-                    type="button"
-                    onClick={() => insertLinePrefix('- ')}
-                    title="Bullet List (- item)"
-                    className="flex h-7 w-7 items-center justify-center rounded-[3px] text-[var(--ink-2)] hover:bg-[var(--paper-3)] hover:text-[var(--ink)]"
-                  >
-                    <List size={14} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => insertLinePrefix('1. ')}
-                    title="Numbered List (1. item)"
-                    className="flex h-7 w-7 items-center justify-center rounded-[3px] text-[var(--ink-2)] hover:bg-[var(--paper-3)] hover:text-[var(--ink)]"
-                  >
-                    <ListOrdered size={14} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => insertLinePrefix('- [ ] ')}
-                    title="Task Checklist (- [ ] task)"
-                    className="flex h-7 w-7 items-center justify-center rounded-[3px] text-[var(--ink-2)] hover:bg-[var(--paper-3)] hover:text-[var(--ink)]"
-                  >
-                    <CheckSquare size={14} />
-                  </button>
-
-                  <div className="h-4 w-px bg-[var(--rule)] mx-1" />
-
-                  {/* Blocks & Inserts */}
-                  <button
-                    type="button"
-                    onClick={() => insertLinePrefix('> ')}
-                    title="Quote Block (> quote)"
-                    className="flex h-7 w-7 items-center justify-center rounded-[3px] text-[var(--ink-2)] hover:bg-[var(--paper-3)] hover:text-[var(--ink)]"
-                  >
-                    <Quote size={14} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => insertBlock('```\ncode here\n```')}
-                    title="Code Block (```)"
-                    className="flex h-7 w-7 items-center justify-center rounded-[3px] text-[var(--ink-2)] hover:bg-[var(--paper-3)] hover:text-[var(--ink)]"
-                  >
-                    <FileCode size={14} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => insertBlock('---')}
-                    title="Horizontal Divider (---)"
-                    className="flex h-7 w-7 items-center justify-center rounded-[3px] text-[var(--ink-2)] hover:bg-[var(--paper-3)] hover:text-[var(--ink)]"
-                  >
-                    <Minus size={14} />
-                  </button>
-
-                  {/* Quick Add Section Template */}
-                  <button
-                    type="button"
-                    onClick={() => insertBlock('## New Section\n\n- Key point 1\n- Key point 2')}
-                    className="ml-auto inline-flex items-center gap-1 rounded-[3px] bg-[var(--accent)]/10 px-2 py-1 font-mono text-2xs font-semibold text-[var(--accent)] hover:bg-[var(--accent)]/20"
-                    title="Add a new structured section template"
-                  >
-                    <PlusCircle size={12} />
-                    <span>Add Section</span>
-                  </button>
-                </div>
-
-                {/* Clean, Modern Editor Textarea */}
-                <textarea
-                  id="notes-content-textarea"
-                  ref={textarea}
-                  value={bodyDraft}
-                  onChange={e => setBodyDraft(e.target.value)}
-                  placeholder="Write or customize your notes... Use ## for headings, - for bullet points, and ``` for code blocks."
-                  aria-label="Edit study guide content"
-                  className="h-[55vh] w-full resize-none rounded-[6px] border border-[var(--rule)] bg-[var(--paper-2)] p-4 font-sans text-sm sm:text-base leading-relaxed text-[var(--ink)] placeholder:text-[var(--ink-3)] focus:border-[var(--accent)] focus:outline-none transition-colors"
-                />
+                {/*
+                  * The markdown toolbar and the raw field it drove are gone.
+                  * The document is edited as a document now; the editor owns
+                  * its own history, so undo and the formatting shortcuts are
+                  * the ones every other editor has already taught people.
+                  */}
+                <RichEditor value={bodyDraft} onChange={setBodyDraft} />
 
                 <div className="flex items-center justify-between text-2xs text-[var(--ink-3)] px-1">
-                  <span>Formatting tips: <code className="bg-[var(--paper-3)] px-1 rounded">## Heading</code> <code className="bg-[var(--paper-3)] px-1 rounded">**bold**</code> <code className="bg-[var(--paper-3)] px-1 rounded">*italic*</code> <code className="bg-[var(--paper-3)] px-1 rounded">- list</code></span>
+                  <span>Ctrl+B bold · Ctrl+I italic · Ctrl+Z undo · markdown shortcuts still work as you type</span>
                 </div>
               </div>
             ) : (

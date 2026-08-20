@@ -48,20 +48,45 @@ describe('setMastery', () => {
     expect(setMastery([])).toBe(0);
   });
 
-  it('averages coverage across cards', () => {
+  it('is the share of cards that are mature', () => {
     const cards = [
-      card({ state: 'new' }), // 0
-      card({ state: 'review', interval: MATURE_INTERVAL_DAYS }), // 1
+      card({ state: 'new' }),
+      card({ state: 'review', interval: MATURE_INTERVAL_DAYS }),
     ];
-    expect(setMastery(cards)).toBeCloseTo(0.5, 5);
+    expect(setMastery(cards)).toBe(0.5);
   });
 
   it('reports full mastery when every card is mature', () => {
+    expect(
+      setMastery([card({ state: 'review', interval: 30 }), card({ state: 'review', interval: 90 })]),
+    ).toBe(1);
+  });
+
+  /*
+   * The bug this replaced: a deck nobody had mastered a single card of still
+   * announced a healthy percentage, because being partway counted as partly
+   * mastered. Under a label reading "Mastered", zero is the honest answer.
+   */
+  it('is zero while every card is still short of mature', () => {
     const cards = [
-      card({ state: 'review', interval: 30 }),
-      card({ state: 'review', interval: 90 }),
+      card({ state: 'learning', interval: 1 }),
+      card({ state: 'review', interval: MATURE_INTERVAL_DAYS - 1 }),
+      card({ state: 'lapsed', interval: 0 }),
     ];
-    expect(setMastery(cards)).toBe(1);
+    expect(setMastery(cards)).toBe(0);
+  });
+
+  it('agrees with the bar drawn beside it', () => {
+    // Three of ten mature: the figure and the green segment are one number.
+    const cards = [
+      ...Array.from({ length: 3 }, () => card({ state: 'review', interval: 40 })),
+      ...Array.from({ length: 3 }, () => card({ state: 'review', interval: 5 })),
+      ...Array.from({ length: 2 }, () => card({ state: 'learning', interval: 1 })),
+      ...Array.from({ length: 2 }, () => card({ state: 'new' })),
+    ];
+    const green = cards.filter(c => cardMastery(c.srs).ink === 'green').length;
+    expect(setMastery(cards)).toBeCloseTo(green / cards.length, 5);
+    expect(Math.round(setMastery(cards) * 100)).toBe(30);
   });
 });
 

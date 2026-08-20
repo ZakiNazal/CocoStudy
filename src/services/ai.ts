@@ -105,11 +105,11 @@ export async function generateSummary(input: ExtractedInput): Promise<string> {
   }
 }
 
-export async function generateFlashcards(summary: string): Promise<Flashcard[]> {
+export async function generateFlashcards(summary: string, count = 10): Promise<Flashcard[]> {
   try {
     const response = await (await ai()).models.generateContent({
       model: MODEL,
-      contents: flashcardPrompt(summary),
+      contents: flashcardPrompt(summary, count),
       config: {
         responseMimeType: 'application/json',
         responseSchema: {

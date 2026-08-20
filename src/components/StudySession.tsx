@@ -7,12 +7,18 @@ import { isDue } from '../lib/srs';
 import NotesView from './notes/NotesView';
 import ReviewSession from './cards/ReviewSession';
 import CardBrowser from './cards/CardBrowser';
+import CardCustomizeModal from './cards/CardCustomizeModal';
+import { clampCardCount } from '../lib/review';
+import { generateFlashcards } from '../services/ai';
 import QuizView, { emptyRun, type QuizRun } from './quiz/QuizView';
 import TutorView from './tutor/TutorView';
 import MasteryBar from './ui/MasteryBar';
 import type { Grade, StudySet } from '../types';
 
 type Tab = 'notes' | 'cards' | 'quiz' | 'tutor';
+
+/** Remembered across sets, the way the quiz remembers its own options. */
+const DECK_SIZE_KEY = 'cocostudy_deck_size';
 
 interface StudySessionProps {
   set: StudySet;
@@ -30,6 +36,35 @@ export default function StudySession({
   const [tab, setTab] = useState<Tab>('notes');
   const [browsing, setBrowsing] = useState(false);
   const [quizRun, setQuizRun] = useState<QuizRun>(() => emptyRun(set.quiz));
+  const [deckOpen, setDeckOpen] = useState(false);
+  const [deckBusy, setDeckBusy] = useState(false);
+  const [deckError, setDeckError] = useState<string | null>(null);
+  const [deckCount, setDeckCount] = useState(() => {
+    const saved = Number(localStorage.getItem(DECK_SIZE_KEY));
+    return clampCardCount(saved || set.flashcards.length || 10);
+  });
+
+  /**
+   * Writes a new deck from the guide. The old cards go with their schedules,
+   * which the dialog says plainly before this can be reached.
+   */
+  const rebuildDeck = async (count: number) => {
+    setDeckBusy(true);
+    setDeckError(null);
+    try {
+      const flashcards = await generateFlashcards(set.summary, count);
+      if (flashcards.length === 0) {
+        setDeckError('No cards came back. Try again.');
+        return;
+      }
+      onUpdateSet({ ...set, flashcards });
+      setDeckOpen(false);
+    } catch (e) {
+      setDeckError(e instanceof Error ? e.message : 'Could not write new cards.');
+    } finally {
+      setDeckBusy(false);
+    }
+  };
   const body = useRef<HTMLDivElement>(null);
 
   const mastery = Math.round(setMastery(set.flashcards) * 100);
@@ -165,10 +200,13 @@ export default function StudySession({
               <CardBrowser cards={set.flashcards} onExit={() => setBrowsing(false)} />
             ) : (
               <ReviewSession
-                key={set.id}
+                // A rebuilt deck is a different deck, so the run starts over
+                // rather than continuing against cards that no longer exist.
+                key={`${set.id}:${set.flashcards.length}`}
                 cards={set.flashcards}
                 onGrade={(cardId, grade) => onGradeCard(set.id, cardId, grade)}
                 onBrowse={() => setBrowsing(true)}
+                onCustomize={() => setDeckOpen(true)}
               />
             )}
           </div>
@@ -204,6 +242,27 @@ export default function StudySession({
           </div>
         )}
       </div>
+
+      <CardCustomizeModal
+        isOpen={deckOpen}
+        onClose={() => {
+          setDeckOpen(false);
+          setDeckError(null);
+        }}
+        cards={set.flashcards}
+        count={deckCount}
+        onCountChange={next => {
+          setDeckCount(next);
+          try {
+            localStorage.setItem(DECK_SIZE_KEY, String(next));
+          } catch {
+            // Private mode: the choice just does not outlive the session.
+          }
+        }}
+        onGenerate={rebuildDeck}
+        isGenerating={deckBusy}
+        error={deckError}
+      />
     </div>
   );
 }

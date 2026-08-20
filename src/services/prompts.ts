@@ -64,11 +64,12 @@ FORMAT:
  * `term` is what the highlighter looks for: it is searched in the guide's text
  * and struck in the card's mastery colour, so an approximation finds nothing.
  */
-export const flashcardPrompt = (summary: string) => `
-Based on the following notes, write 8 to 12 flashcards for study.
+export const flashcardPrompt = (summary: string, count = 10) => `
+Based on the following notes, write exactly ${count} flashcards for study.
 
 Return a JSON array of objects with "front", "back" and "term".
 
+- Spread them across the whole guide rather than crowding the opening section, and cover what matters most first if ${count} is too few for everything.
 - "front" is one question or prompt. One fact per card: a card that asks for
   three things fails as a unit and teaches you nothing about which one you lost.
 - "back" is the answer, complete but short.

@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useGSAP } from '@gsap/react';
-import { Check, Layers, RotateCw } from 'lucide-react';
+import { Check, Layers, RotateCw, SlidersHorizontal } from 'lucide-react';
 import { gsap, DUR, EASE, shouldAnimate } from '../../lib/motion';
-import { gradePreview, isDue } from '../../lib/srs';
+import { gradePreview } from '../../lib/srs';
+import { buildQueue, reschedules, type SessionMode } from '../../lib/review';
 import { cardMastery } from '../../lib/mastery';
 import TickStrip, { type TickTone } from '../ui/TickStrip';
 import type { Flashcard, Grade } from '../../types';
@@ -18,16 +19,24 @@ interface ReviewSessionProps {
   cards: Flashcard[];
   onGrade: (cardId: string, grade: Grade) => void;
   onBrowse: () => void;
+  /** Opens the deck-size dialog. */
+  onCustomize: () => void;
 }
 
 function Done({
   heading,
   detail,
   onBrowse,
+  onPractice,
+  practiceLabel,
+  onCustomize,
 }: {
   heading: string;
   detail: string;
   onBrowse: () => void;
+  onPractice?: () => void;
+  practiceLabel?: string;
+  onCustomize?: () => void;
 }) {
   return (
     <div className="flex h-full items-center justify-center px-6">
@@ -40,19 +49,46 @@ function Done({
         </div>
         <p className="display mt-6 text-2xl">{heading}</p>
         <p className="numeral mt-2 text-[var(--ink-2)]">{detail}</p>
-        <button
-          onClick={onBrowse}
-          className="mt-7 inline-flex items-center gap-2 rounded-[4px] border border-[var(--ink)] px-5 py-2.5 font-mono text-2xs uppercase tracking-[0.1em] text-[var(--ink)] transition-colors duration-150 hover:bg-[var(--ink)] hover:text-[var(--paper)]"
-        >
-          <Layers size={14} />
-          Browse the deck
-        </button>
+
+        <div className="mt-7 flex flex-wrap items-center justify-center gap-2">
+          {onPractice && (
+            <button
+              onClick={onPractice}
+              className="inline-flex items-center gap-2 rounded-[4px] bg-[var(--ink)] px-5 py-2.5 font-mono text-2xs uppercase tracking-[0.1em] text-[var(--paper)] transition-colors duration-150 hover:bg-[var(--ink-2)]"
+            >
+              <RotateCw size={14} />
+              {practiceLabel ?? 'Go again'}
+            </button>
+          )}
+          <button
+            onClick={onBrowse}
+            className="inline-flex items-center gap-2 rounded-[4px] border border-[var(--ink)] px-5 py-2.5 font-mono text-2xs uppercase tracking-[0.1em] text-[var(--ink)] transition-colors duration-150 hover:bg-[var(--ink)] hover:text-[var(--paper)]"
+          >
+            <Layers size={14} />
+            Browse the deck
+          </button>
+          {onCustomize && (
+            <button
+              onClick={onCustomize}
+              className="inline-flex items-center gap-2 rounded-[4px] px-3 py-2.5 font-mono text-2xs uppercase tracking-[0.1em] text-[var(--ink-3)] transition-colors duration-150 hover:text-[var(--ink)]"
+            >
+              <SlidersHorizontal size={13} />
+              Rebuild deck
+            </button>
+          )}
+        </div>
+
+        {onPractice && (
+          <p className="mt-4 text-2xs text-[var(--ink-3)]">
+            Practice does not change when anything is next due.
+          </p>
+        )}
       </div>
     </div>
   );
 }
 
-export default function ReviewSession({ cards, onGrade, onBrowse }: ReviewSessionProps) {
+export default function ReviewSession({ cards, onGrade, onBrowse, onCustomize }: ReviewSessionProps) {
   const now = new Date();
 
   /**
@@ -60,12 +96,26 @@ export default function ReviewSession({ cards, onGrade, onBrowse }: ReviewSessio
    * date, so recomputing from props mid-session would drop cards out from
    * under the user as they answer them.
    */
-  const [queue] = useState<string[]>(() =>
-    cards.filter(c => isDue(c.srs, now)).map(c => c.id),
-  );
+  const [session, setSession] = useState<{ mode: SessionMode; queue: string[] }>(() => ({
+    mode: 'review',
+    queue: buildQueue(cards, 'review', now),
+  }));
   const [position, setPosition] = useState(0);
   const [revealed, setRevealed] = useState(false);
   const [marks, setMarks] = useState<TickTone[]>([]);
+
+  const { mode, queue } = session;
+
+  /** Starts a fresh run. Practice takes the whole deck and changes nothing. */
+  const start = useCallback(
+    (next: SessionMode) => {
+      setSession({ mode: next, queue: buildQueue(cards, next, new Date()) });
+      setPosition(0);
+      setRevealed(false);
+      setMarks([]);
+    },
+    [cards],
+  );
 
   const stage = useRef<HTMLDivElement>(null);
   const answer = useRef<HTMLDivElement>(null);
@@ -77,12 +127,15 @@ export default function ReviewSession({ cards, onGrade, onBrowse }: ReviewSessio
   const grade = useCallback(
     (value: Grade) => {
       if (!card || !revealed) return;
-      onGrade(card.id, value);
+      // Practice is deliberately read-only: the intervals are what the app is
+      // for, and answering the same card five times in a minute would flatten
+      // them.
+      if (reschedules(mode)) onGrade(card.id, value);
       setMarks(m => [...m, GRADES.find(g => g.grade === value)!.tone]);
       setRevealed(false);
       setPosition(p => p + 1);
     },
-    [card, revealed, onGrade],
+    [card, revealed, onGrade, mode],
   );
 
   /*
@@ -142,8 +195,15 @@ export default function ReviewSession({ cards, onGrade, onBrowse }: ReviewSessio
     return (
       <Done
         heading="Nothing due right now."
-        detail="Come back when a card comes up, or look through the deck."
+        detail={
+          cards.length > 0
+            ? `Nothing is scheduled, but all ${cards.length} cards are here to practise.`
+            : 'This set has no cards yet.'
+        }
         onBrowse={onBrowse}
+        onPractice={cards.length > 0 ? () => start('practice') : undefined}
+        practiceLabel={`Practise all ${cards.length}`}
+        onCustomize={onCustomize}
       />
     );
   }
@@ -151,9 +211,14 @@ export default function ReviewSession({ cards, onGrade, onBrowse }: ReviewSessio
   if (done || !card) {
     return (
       <Done
-        heading="Session done."
-        detail={`${marks.length} ${marks.length === 1 ? 'card' : 'cards'} reviewed`}
+        heading={mode === 'practice' ? 'Practice done.' : 'Session done.'}
+        detail={`${marks.length} ${marks.length === 1 ? 'card' : 'cards'} ${
+          mode === 'practice' ? 'practised' : 'reviewed'
+        }`}
         onBrowse={onBrowse}
+        onPractice={cards.length > 0 ? () => start('practice') : undefined}
+        practiceLabel={`Go through all ${cards.length} again`}
+        onCustomize={onCustomize}
       />
     );
   }
@@ -170,11 +235,17 @@ export default function ReviewSession({ cards, onGrade, onBrowse }: ReviewSessio
       <div className="shrink-0 border-b border-[var(--rule)] bg-[var(--paper-2)] px-4 py-3 sm:px-10">
         <div className="mx-auto max-w-2xl">
           <div className="flex items-baseline justify-between gap-4">
-            <span className="label">Review</span>
+            <span className="label">{mode === 'practice' ? 'Practice' : 'Review'}</span>
             <div className="flex items-baseline gap-3">
               <span className="numeral text-2xs text-[var(--ink-3)]">
                 {position + 1} / {queue.length}
               </span>
+              <button
+                onClick={onCustomize}
+                className="-my-2 py-2 font-mono text-2xs uppercase tracking-[0.1em] text-[var(--ink-3)] transition-colors hover:text-[var(--ink)]"
+              >
+                Deck
+              </button>
               <button
                 onClick={onBrowse}
                 className="-my-2 py-2 font-mono text-2xs uppercase tracking-[0.1em] text-[var(--ink-3)] transition-colors hover:text-[var(--ink)]"

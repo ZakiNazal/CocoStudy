@@ -321,3 +321,134 @@ body {
     scroll-behavior: auto !important;
   }
 }
+/* --- The document editor ------------------------------------------- */
+
+/*
+ * The editing surface is set to match the rendered guide, so formatting looks
+ * the same while you are writing it as it will when you are reading it. That
+ * resemblance is the whole point of editing a document rather than its source.
+ */
+.prose-notes {
+  padding: 1.25rem 1rem 3rem;
+  min-height: 55vh;
+  font-size: 0.9375rem;
+  line-height: 1.7;
+  color: var(--ink);
+}
+
+@media (min-width: 640px) {
+  .prose-notes {
+    padding: 1.5rem 1.75rem 4rem;
+    font-size: 1rem;
+  }
+}
+
+.prose-notes > * + * {
+  margin-top: 0.9em;
+}
+
+.prose-notes h1,
+.prose-notes h2,
+.prose-notes h3 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  line-height: 1.2;
+  margin-top: 1.6em;
+}
+
+.prose-notes h1 { font-size: 1.75rem; }
+.prose-notes h2 { font-size: 1.35rem; }
+.prose-notes h3 { font-size: 1.1rem; }
+.prose-notes > :first-child { margin-top: 0; }
+
+.prose-notes ul,
+.prose-notes ol {
+  padding-left: 1.4em;
+}
+.prose-notes ul { list-style: disc; }
+.prose-notes ol { list-style: decimal; }
+.prose-notes li { margin-top: 0.25em; }
+.prose-notes li p { margin: 0; }
+
+.prose-notes ul[data-type='taskList'] {
+  list-style: none;
+  padding-left: 0;
+}
+.prose-notes ul[data-type='taskList'] li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55em;
+}
+.prose-notes ul[data-type='taskList'] input[type='checkbox'] {
+  margin-top: 0.42em;
+  accent-color: var(--accent);
+}
+
+.prose-notes blockquote {
+  border-left: 2px solid var(--ink);
+  padding-left: 1em;
+  color: var(--ink-2);
+}
+
+.prose-notes code {
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+  background: var(--paper-3);
+  padding: 0.1em 0.35em;
+  border-radius: 3px;
+}
+
+.prose-notes pre {
+  background: var(--paper-3);
+  padding: 0.9em 1em;
+  border-radius: 4px;
+  overflow-x: auto;
+}
+.prose-notes pre code {
+  background: none;
+  padding: 0;
+  font-size: 0.8125rem;
+}
+
+.prose-notes hr {
+  border: none;
+  border-top: 1px solid var(--rule);
+  margin: 1.6em 0;
+}
+
+/* A table is a grid you can click into, the same as the one it renders to. */
+.prose-notes table {
+  border-collapse: collapse;
+  width: 100%;
+  table-layout: fixed;
+  overflow: hidden;
+}
+.prose-notes th,
+.prose-notes td {
+  border: 1px solid var(--rule);
+  padding: 0.4em 0.6em;
+  vertical-align: top;
+  text-align: left;
+}
+.prose-notes th {
+  background: var(--paper-3);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+.prose-notes .selectedCell::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  pointer-events: none;
+}
+
+/* Tiptap's placeholder, shown only while the document is genuinely empty. */
+.prose-notes p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  color: var(--ink-3);
+  pointer-events: none;
+}
