@@ -121,6 +121,7 @@ export default function Sidebar({
         duration: DUR.base,
         ease: EASE.out,
         stagger: STAGGER.micro,
+        clearProps: 'transform,opacity',
       });
     },
     { scope: root, dependencies: [sets.length, folders.length] },
@@ -173,8 +174,9 @@ export default function Sidebar({
           e.dataTransfer.effectAllowed = 'move';
         }}
         onDragEnd={() => setDropTarget(null)}
-        className={`group relative border-b border-[var(--rule)] transition-colors duration-150 ${active ? 'bg-[var(--paper-3)]' : 'hover:bg-[var(--paper-3)]/60'
-          }`}
+        className={`group relative border-b border-[var(--rule)] transition-colors duration-150 ${
+          open ? 'z-30' : ''
+        } ${active ? 'bg-[var(--paper-3)]' : 'hover:bg-[var(--paper-3)]/60'}`}
       >
         {active && (
           <span
@@ -222,8 +224,9 @@ export default function Sidebar({
           onClick={() => setSetMenu(open ? null : set.id)}
           aria-label={`File “${set.title}” in a folder`}
           aria-expanded={open}
-          className={`absolute right-1 top-1.5 flex h-9 w-9 items-center justify-center rounded-[4px] text-[var(--ink-3)] transition-opacity duration-150 hover:bg-[var(--paper)] hover:text-[var(--ink)] focus:opacity-100 ${open ? 'opacity-100' : 'opacity-100 md:opacity-0 md:group-hover:opacity-100'
-            }`}
+          className={`absolute right-1 top-1.5 flex h-9 w-9 items-center justify-center rounded-[4px] text-[var(--ink-3)] transition-opacity duration-150 hover:bg-[var(--paper)] hover:text-[var(--ink)] focus:opacity-100 ${
+            open ? 'opacity-100' : 'opacity-100 md:opacity-0 md:group-hover:opacity-100'
+          }`}
         >
           <MoreHorizontal size={16} />
         </button>
@@ -235,7 +238,7 @@ export default function Sidebar({
               onClick={closeMenus}
               className="fixed inset-0 z-40 cursor-default"
             />
-            <div className="absolute right-2 top-9 z-50 w-48 border border-[var(--rule)] bg-[var(--paper-2)] py-1 shadow-lg">
+            <div className="absolute right-2 top-9 z-50 w-48 rounded-[6px] border border-[var(--rule)] bg-[var(--paper-2)] py-1 shadow-xl">
               <p className="label px-3 py-1 text-[var(--ink-3)]">Move to</p>
               {destinations(set).map(folder => (
                 <button
@@ -293,8 +296,9 @@ export default function Sidebar({
             if (setId) onMoveSet(setId, folder?.id ?? null);
             setDropTarget(null);
           }}
-          className={`relative flex items-center gap-1.5 border-b border-[var(--rule)] px-3 py-1.5 transition-colors duration-150 ${over ? 'bg-[var(--pink-wash)]' : 'bg-[var(--paper-2)]'
-            }`}
+          className={`relative flex items-center gap-1.5 border-b border-[var(--rule)] px-3 py-1.5 transition-colors duration-150 ${
+            open ? 'z-30' : ''
+          } ${over ? 'bg-[var(--pink-wash)]' : 'bg-[var(--paper-2)]'}`}
         >
           {renamingId === id && folder ? (
             <input
@@ -345,7 +349,7 @@ export default function Sidebar({
                 onClick={closeMenus}
                 className="fixed inset-0 z-40 cursor-default"
               />
-              <div className="absolute right-2 top-7 z-50 w-40 border border-[var(--rule)] bg-[var(--paper-2)] py-1 shadow-lg">
+              <div className="absolute right-2 top-7 z-50 w-40 rounded-[6px] border border-[var(--rule)] bg-[var(--paper-2)] py-1 shadow-xl">
                 <button
                   onClick={() => {
                     cancelled.current = false;
