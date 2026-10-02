@@ -8,19 +8,110 @@
   <!-- `viewport-fit=cover` is what makes env(safe-area-inset-*) report anything
        other than zero, so the bottom bars can clear the home indicator. -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="description" content="CocoStudy - Your AI-powered study companion" />
+  <meta name="description" content="CocoStudy, your AI-powered study companion. Turn lectures, slides, PDFs and notes into study guides, spaced repetition flashcards, quizzes and an AI tutor." />
   <meta name="author" content="Zaki Nazzal" />
   <meta name="keywords" content="AI, study companion, flashcards, quiz, notes, education, learning" />
-  <title>CocoStudy</title>
+  <title>CocoStudy: AI Study Companion for Notes, Flashcards and Quizzes</title>
+  <link rel="canonical" href="https://cocostudy.space/" />
   <!-- Cropped to the mark: the full logo is a wide canvas whose glow leaves the
        C about a third of the frame, which shrinks to nothing in a tab. -->
   <link rel="icon" href="/favicon.ico" sizes="16x16 32x32 48x48" />
   <link rel="icon" type="image/png" href="/favicon.png" sizes="64x64" />
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": "https://cocostudy.space/#website",
+        "name": "CocoStudy",
+        "url": "https://cocostudy.space/",
+        "description": "An AI-powered, offline-first study companion that turns your lectures, slide decks, PDFs, and notes into interactive study guides, spaced repetition flashcards, customizable quizzes, and a personal AI tutor.",
+        "inLanguage": "en",
+        "publisher": { "@id": "https://cocostudy.space/#organization" }
+      },
+      {
+        "@type": "Organization",
+        "@id": "https://cocostudy.space/#organization",
+        "name": "CocoStudy",
+        "url": "https://cocostudy.space/",
+        "logo": "https://cocostudy.space/mark.png",
+        "founder": { "@id": "https://cocostudy.space/#zaki" },
+        "sameAs": ["https://github.com/ZakiNazal/CocoStudy"],
+        "contactPoint": {
+          "@type": "ContactPoint",
+          "contactType": "customer support",
+          "email": "zakinazal112@gmail.com"
+        }
+      },
+      {
+        "@type": "Person",
+        "@id": "https://cocostudy.space/#zaki",
+        "name": "Zaki Nazzal",
+        "url": "https://zakinazal.github.io",
+        "sameAs": [
+          "https://github.com/ZakiNazal",
+          "https://www.linkedin.com/in/zakinazzal"
+        ]
+      },
+      {
+        "@type": "WebApplication",
+        "@id": "https://cocostudy.space/#app",
+        "name": "CocoStudy",
+        "url": "https://cocostudy.space/",
+        "applicationCategory": "EducationalApplication",
+        "operatingSystem": "Web browser",
+        "description": "Turns lectures, slide decks, PDFs, and notes into study guides, SM-2 spaced repetition flashcards, customizable quizzes, and a grounded AI tutor. Data stays in your browser via IndexedDB.",
+        "author": { "@id": "https://cocostudy.space/#zaki" },
+        "publisher": { "@id": "https://cocostudy.space/#organization" },
+        "license": "https://opensource.org/licenses/MIT"
+      }
+    ]
+  }
+  </script>
+  <style>
+    .cs-static { max-width: 42rem; margin: 0 auto; padding: 3rem 1.25rem; font-family: system-ui, sans-serif; line-height: 1.6; color: #1d1d1b; }
+    .cs-static nav a, .cs-static footer a { margin-right: 1rem; }
+    .cs-static footer { margin-top: 2rem; font-size: 0.9rem; }
+  </style>
 </head>
 
 <body>
-  <div id="root"></div>
+  <!-- React replaces everything inside #root on mount. This is what crawlers
+       and no-JS readers get. -->
+  <div id="root">
+    <div class="cs-static">
+      <header>
+        <nav aria-label="Site">
+          <a href="/">CocoStudy</a>
+          <a href="/about.html">About</a>
+          <a href="https://github.com/ZakiNazal/CocoStudy">GitHub</a>
+        </nav>
+      </header>
+      <main>
+        <h1>CocoStudy: Marked up as you learn</h1>
+        <p>An AI-powered, offline-first study companion that turns your lectures, slide decks, PDFs, and notes into interactive study guides, spaced repetition flashcards, customizable quizzes, and a personal AI tutor.</p>
+        <section>
+          <h2>Highlights</h2>
+          <ul>
+            <li>Multi-format intake: PDFs, Word documents, PowerPoint decks, audio, video, or pasted text.</li>
+            <li>Smart study guides with outlines, LaTeX math, and code blocks.</li>
+            <li>Spaced repetition flashcards using the SM-2 scheduler.</li>
+            <li>Customizable quizzes: multiple choice, true/false, and essay.</li>
+            <li>A grounded AI tutor that answers from your course material.</li>
+            <li>Private and offline-first: your data stays in your browser.</li>
+          </ul>
+        </section>
+      </main>
+      <footer>
+        <a href="/about.html">About CocoStudy</a>
+        <a href="mailto:zakinazal112@gmail.com">Contact</a>
+        <a href="https://github.com/ZakiNazal">GitHub</a>
+        <a href="https://www.linkedin.com/in/zakinazzal">LinkedIn</a>
+      </footer>
+    </div>
+  </div>
   <script type="module" src="/src/main.tsx"></script>
 </body>
 

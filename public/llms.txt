@@ -1,0 +1,22 @@
+# CocoStudy
+
+> CocoStudy is an AI-powered, offline-first study companion that turns lectures, slide decks, PDFs, and notes into interactive study guides, spaced repetition flashcards, customizable quizzes, and a personal AI tutor.
+
+CocoStudy runs in the browser. All study sets, notes, flashcards, and progress are stored locally in IndexedDB, and AI features call Google Gemini directly with the user's own API key.
+A pre-loaded demo study set ("Spaced Repetition and the Forgetting Curve") lets anyone try every feature without an account or API key.
+Flashcards use an adaptive SM-2 scheduler; a card counts as mastered once its review interval reaches 21 days.
+CocoStudy is open source under the MIT License and built by Zaki Nazzal.
+
+## Pages
+
+- [CocoStudy app](https://cocostudy.space/): the study companion itself, with intake, notes, flashcards, quizzes, and tutor
+- [About CocoStudy](https://cocostudy.space/about.html): what the app does, how it handles data, and who builds it
+
+## Source
+
+- [GitHub repository](https://github.com/ZakiNazal/CocoStudy): source code, README, and screenshots
+- [License](https://github.com/ZakiNazal/CocoStudy/blob/main/LICENSE): MIT
+
+## Contact
+
+- [Email](mailto:zakinazal112@gmail.com)
