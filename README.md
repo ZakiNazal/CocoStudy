@@ -20,6 +20,13 @@
 
 <img src="docs/screenshots/hero_intake.png" alt="CocoStudy Hero & Intake" width="100%" />
 
+<br />
+<br />
+
+### ▶ See it in 22 seconds
+
+<a href="docs/cocostudy-launch.mp4"><img src="docs/cocostudy-launch.jpg" alt="CocoStudy launch video: drop in a lecture, get a study guide, flashcards and a tutor" width="100%" /></a>
+
 </div>
 
 <br />
