@@ -68,6 +68,18 @@
   --yellow-wash: #FEF08A;
   --green-wash: #DCFCE7;
   --cyan-wash: #E0F2FE;
+
+  /* Coco, the helper. Cream like the mark's little reader, a bandana in the
+     brand blue, and an antenna bulb that is the yellow highlighter. */
+  --coco-line: #2A2733;
+  --coco-body: #FBF7EC;
+  --coco-shade: #E3D9C4;
+  --coco-shine: #FFFFFF;
+  --coco-eye: #1B1A22;
+  --coco-blush: #FF9EBD;
+  --coco-scarf: #0052FF;
+  --coco-scarf-2: #0038B8;
+  --coco-bulb: #FACC15;
 }
 
 /* Dark is a deliberate choice, never inherited from the OS: light above is the
@@ -97,6 +109,13 @@
   --accent: #5B93FF;
   --accent-strong: #7FA9FF;
   --accent-wash: #16233F;
+
+  /* The outline doubles as the antenna stalk, which is drawn on the paper
+     itself — dark ink there would vanish into a near-black page. */
+  --coco-line: #8F8AA0;
+  --coco-scarf: #3D7BFF;
+  --coco-scarf-2: #2456D6;
+  --coco-bulb: #F8EE86;
 }
 
 html,
@@ -325,6 +344,79 @@ body {
 
 .no-scrollbar::-webkit-scrollbar {
   display: none;
+}
+
+/* --- Coco ---------------------------------------------------------- */
+
+/* Pixel art moves a whole pixel at a time. `steps` keeps every frame on the
+   grid; a smooth tween would smear the sprite across half-pixels. */
+.coco {
+  overflow: visible;
+}
+
+.coco-anim .coco-figure {
+  animation: coco-bob 1.8s steps(1, end) infinite;
+}
+
+.coco-antenna {
+  transform-box: view-box;
+  transform-origin: 12.5px 8.5px;
+}
+
+.coco-anim .coco-antenna {
+  animation: coco-sway 2.4s steps(1, end) infinite;
+}
+
+.coco-thinking .coco-antenna {
+  animation-duration: 0.8s;
+}
+
+.coco-thinking .coco-figure {
+  animation-duration: 1s;
+}
+
+.coco-happy .coco-figure {
+  animation: coco-hop 0.9s steps(1, end) 3;
+}
+
+.coco-sleepy .coco-figure {
+  animation-duration: 3.2s;
+}
+
+.coco-worried .coco-figure {
+  animation: coco-shiver 0.5s steps(1, end) 4;
+}
+
+@keyframes coco-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-1px); }
+}
+
+@keyframes coco-sway {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-8deg); }
+  75% { transform: rotate(8deg); }
+}
+
+@keyframes coco-hop {
+  0%, 100% { transform: translateY(0); }
+  33% { transform: translateY(-2px); }
+  66% { transform: translateY(-1px); }
+}
+
+@keyframes coco-shiver {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(1px); }
+}
+
+/* The speech bubble rises out of Coco rather than appearing from nowhere. */
+@keyframes coco-pop {
+  from { opacity: 0; transform: translateY(var(--coco-pop-from, 6px)) scale(0.96); }
+  to { opacity: 1; transform: none; }
+}
+
+.coco-pop {
+  animation: coco-pop 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* --- Motion -------------------------------------------------------- */

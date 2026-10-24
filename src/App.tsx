@@ -5,6 +5,8 @@ import Intake from './components/intake/Intake';
 import StudySession from './components/StudySession';
 import Banner from './components/ui/Banner';
 import Settings from './components/shell/Settings';
+import CocoHelper from './components/coco/CocoHelper';
+import type { CocoScene } from './lib/coco';
 import { useStudySets } from './store/useStudySets';
 import { useSettings } from './store/useSettings';
 import { addFolder, removeFolder, renameFolder } from './lib/folders';
@@ -32,6 +34,18 @@ export default function App() {
 
   const activeSet = sets.find(s => s.id === activeSetId) ?? null;
   const folders = meta?.folders ?? [];
+  // Waits for settings to load, so someone who hid Coco never sees a flash of it.
+  const cocoOn = meta !== null && meta.coco !== false;
+  const hideCoco = () => void updateSettings({ coco: false });
+
+  const busy = status !== 'idle' && status !== 'complete' && status !== 'error';
+  const intakeScene: CocoScene = error
+    ? { kind: 'error' }
+    : busy
+      ? { kind: 'processing', status }
+      : { kind: 'intake', hasSets: sets.length > 0 };
+
+  const loadDemo = async () => setActiveSetId((await loadDemoSet()).id);
 
   /* The drawer is a modal surface on a phone, so it closes the way every other
      one does. Without this, Escape does nothing and the page behind it scrolls
@@ -134,7 +148,8 @@ export default function App() {
         )}
 
         {error && (
-          <div className="px-6 pt-6">
+          // Below the library button and Coco on a phone, not underneath them.
+          <div className="px-4 pt-16 sm:px-6 md:pt-6">
             <Banner tone="error" onDismiss={clearError}>
               {error}
             </Banner>
@@ -148,16 +163,29 @@ export default function App() {
               onBack={() => setActiveSetId(null)}
               onUpdateSet={updateSet}
               onGradeCard={gradeCard}
+              coco={cocoOn}
+              onHideCoco={hideCoco}
             />
           ) : (
             <Intake
               onProcess={handleProcess}
-              onLoadDemo={async () => setActiveSetId((await loadDemoSet()).id)}
+              onLoadDemo={loadDemo}
               hasSets={sets.length > 0}
               status={status}
             />
           )}
         </div>
+
+        {cocoOn && !activeSet && (
+          <CocoHelper
+            scene={intakeScene}
+            onHide={hideCoco}
+            onAction={id => {
+              if (id === 'demo') void loadDemo();
+              if (id === 'library') setNavOpen(true);
+            }}
+          />
+        )}
       </main>
 
       <Settings

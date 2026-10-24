@@ -4,6 +4,7 @@ import { starterPrompts } from '../../lib/tutor';
 import { chatWithContext } from '../../services/ai';
 import MarkdownView from '../notes/MarkdownView';
 import Banner from '../ui/Banner';
+import CocoSprite from '../coco/CocoSprite';
 import type { ChatMessage } from '../../types';
 
 interface TutorViewProps {
@@ -11,6 +12,19 @@ interface TutorViewProps {
   summary: string;
   history: ChatMessage[];
   onHistoryChange: (history: ChatMessage[]) => void;
+  /** With Coco on, the tutor speaks as Coco. */
+  coco?: boolean;
+}
+
+/** Who is answering: Coco's face and name, or the plain label. */
+function Speaker({ coco, thinking = false }: { coco: boolean; thinking?: boolean }) {
+  if (!coco) return <span className="label">Tutor</span>;
+  return (
+    <span className="flex items-center gap-1.5">
+      <CocoSprite mood={thinking ? 'thinking' : 'idle'} size={20} animated={thinking} />
+      <span className="label">Coco</span>
+    </span>
+  );
 }
 
 const MAX_COMPOSER_PX = 160;
@@ -20,6 +34,7 @@ export default function TutorView({
   summary,
   history,
   onHistoryChange,
+  coco = false,
 }: TutorViewProps) {
   const [chat, setChat] = useState<ChatMessage[]>(history);
   const [draft, setDraft] = useState('');
@@ -86,7 +101,14 @@ export default function TutorView({
         <div className="mx-auto max-w-2xl py-8">
           {chat.length === 0 ? (
             <div>
-              <span className="label">Tutor</span>
+              {coco ? (
+                <div className="flex items-end gap-3">
+                  <CocoSprite mood="happy" size={52} />
+                  <span className="label pb-1">Coco · your tutor</span>
+                </div>
+              ) : (
+                <span className="label">Tutor</span>
+              )}
               <p className="display mt-3 text-2xl">I have read these notes.</p>
               <p className="mt-3 max-w-md leading-relaxed text-[var(--ink-2)]">
                 Ask for a plainer explanation, a worked example, or a harder version of
@@ -122,7 +144,7 @@ export default function TutorView({
                   </div>
                 ) : (
                   <div key={i}>
-                    <span className="label">Tutor</span>
+                    <Speaker coco={coco} />
                     <div className="mt-1 text-sm leading-[1.7]">
                       <MarkdownView>{message.text}</MarkdownView>
                     </div>
@@ -132,7 +154,7 @@ export default function TutorView({
 
               {busy && (
                 <div>
-                  <span className="label">Tutor</span>
+                  <Speaker coco={coco} thinking />
                   <p className="mt-1.5 flex items-center gap-2 text-sm text-[var(--ink-3)]">
                     <Loader2 size={13} className="animate-spin" />
                     Reading your notes

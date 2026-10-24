@@ -196,7 +196,7 @@ export default function Intake({ onProcess, onLoadDemo, hasSets, status }: Intak
                 role="button"
                 tabIndex={0}
                 aria-label="Choose a file to upload, or drop one here"
-                className="cursor-pointer border-2 border-dashed border-[var(--accent)] bg-[var(--accent-wash)]/30 dark:bg-[var(--accent)]/5 px-8 py-16 text-center transition-colors duration-150 hover:bg-[var(--accent-wash)]/60"
+                className="cursor-pointer border-2 border-dashed border-[var(--accent)] bg-[var(--accent-wash)]/30 dark:bg-[var(--accent)]/5 px-5 py-10 text-center sm:px-8 sm:py-16 transition-colors duration-150 hover:bg-[var(--accent-wash)]/60"
               >
                 <input
                   ref={fileInput}
@@ -210,11 +210,21 @@ export default function Intake({ onProcess, onLoadDemo, hasSets, status }: Intak
                   }}
                 />
 
+                {/* A finger cannot drag a file in, so a touch screen is asked
+                    for the one gesture it does have. */}
                 <p className="display text-2xl font-bold text-[var(--accent)]">
-                  {dragging ? 'Let go' : 'Drop a file here'}
+                  {dragging ? (
+                    'Let go'
+                  ) : (
+                    <>
+                      <span className="pointer-coarse:hidden">Drop a file here</span>
+                      <span className="hidden pointer-coarse:inline">Tap to choose a file</span>
+                    </>
+                  )}
                 </p>
                 <p className="mt-2 text-sm text-[var(--ink-2)]">
-                  or click to choose one
+                  <span className="pointer-coarse:hidden">or click to choose one</span>
+                  <span className="hidden pointer-coarse:inline">from the files on your phone</span>
                 </p>
 
                 <div className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2">

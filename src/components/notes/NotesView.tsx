@@ -299,7 +299,7 @@ export default function NotesView({ set, onUpdateSet }: NotesViewProps) {
     'flex h-9 w-full items-center justify-center gap-1.5 rounded-[4px] border border-[var(--rule)] px-3 font-mono text-2xs uppercase tracking-[0.1em] text-[var(--ink-2)] transition-colors duration-150 hover:border-[var(--ink)] hover:text-[var(--ink)] disabled:opacity-50 active:scale-[0.98]';
 
   return (
-    <div ref={scrollContainer} className="pb-safe [--pb-base:3rem] h-full overflow-y-auto px-4 sm:px-8 lg:px-12 xl:px-16">
+    <div ref={scrollContainer} className="pb-safe [--pb-base:3rem] sm:[--pb-base:6rem] h-full overflow-y-auto px-4 sm:px-8 lg:px-12 xl:px-16">
       <div className="mx-auto w-full max-w-[1400px] pt-6 sm:pt-8 lg:pt-10">
         {imageError && (
           <div className="mb-6">

@@ -96,6 +96,8 @@ export interface AppMeta {
   focus: { totalMs: number; sessions: number; durationMin: number };
   /** Library shelves, in the order they were made. */
   folders: Folder[];
+  /** Coco, the helper. Shown unless this is exactly `false`, so older data keeps it on. */
+  coco?: boolean;
 }
 
 export type ProcessingStatus =

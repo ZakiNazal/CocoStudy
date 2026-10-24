@@ -13,9 +13,9 @@ import { generateFlashcards } from '../services/ai';
 import QuizView, { emptyRun, type QuizRun } from './quiz/QuizView';
 import TutorView from './tutor/TutorView';
 import MasteryBar from './ui/MasteryBar';
+import CocoHelper from './coco/CocoHelper';
+import type { StudyTab as Tab } from '../lib/coco';
 import type { Grade, StudySet } from '../types';
-
-type Tab = 'notes' | 'cards' | 'quiz' | 'tutor';
 
 /** Remembered across sets, the way the quiz remembers its own options. */
 const DECK_SIZE_KEY = 'cocostudy_deck_size';
@@ -25,6 +25,9 @@ interface StudySessionProps {
   onBack: () => void;
   onUpdateSet: (set: StudySet) => void;
   onGradeCard: (setId: string, cardId: string, grade: Grade) => void;
+  /** Whether Coco, the helper, is shown. */
+  coco: boolean;
+  onHideCoco: () => void;
 }
 
 export default function StudySession({
@@ -32,6 +35,8 @@ export default function StudySession({
   onBack,
   onUpdateSet,
   onGradeCard,
+  coco,
+  onHideCoco,
 }: StudySessionProps) {
   const [tab, setTab] = useState<Tab>('notes');
   const [browsing, setBrowsing] = useState(false);
@@ -102,7 +107,11 @@ export default function StudySession({
   return (
     <div className="flex h-full flex-col">
       <header className="shrink-0 border-b border-[var(--rule)] bg-[var(--paper-2)]">
-        <div className="flex items-start gap-3 px-4 pb-3 pl-16 pt-4 sm:px-6 md:pl-6 md:pt-5">
+        <div
+          className={`flex items-start gap-3 px-4 pb-3 pl-16 pt-4 sm:px-6 md:pl-6 md:pt-5 ${
+            coco ? 'pr-16 sm:pr-6' : ''
+          }`}
+        >
           <button
             onClick={onBack}
             aria-label="Back to library"
@@ -162,7 +171,9 @@ export default function StudySession({
               key={id}
               onClick={() => setTab(id)}
               aria-current={tab === id ? 'page' : undefined}
-              className={`-mb-px flex flex-1 shrink-0 items-center justify-center gap-1.5 border-b-2 px-3 py-3.5 font-mono text-xs uppercase tracking-[0.1em] transition-colors duration-150 sm:flex-none sm:justify-start sm:py-2.5 ${
+              // Tight letterspacing and padding below sm, so all four fit a 320px
+              // phone instead of TUTOR sliding off the edge.
+              className={`-mb-px flex flex-1 shrink-0 items-center justify-center gap-1 border-b-2 px-1 py-3.5 font-mono text-xs uppercase tracking-[0.04em] transition-colors duration-150 sm:flex-none sm:justify-start sm:gap-1.5 sm:px-3 sm:py-2.5 sm:tracking-[0.1em] ${
                 tab === id
                   ? 'border-[var(--ink)] text-[var(--ink)]'
                   : 'border-transparent text-[var(--ink-3)] hover:text-[var(--ink-2)]'
@@ -238,10 +249,32 @@ export default function StudySession({
               summary={set.summary}
               history={set.chatHistory}
               onHistoryChange={chatHistory => onUpdateSet({ ...set, chatHistory })}
+              coco={coco}
             />
           </div>
         )}
       </div>
+
+      {/*
+       * In the tutor, Coco is the one answering, so from sm up — where the
+       * helper would sit on the send button — it steps out of the corner and
+       * into the conversation. On a phone it lives up in the header instead
+       * and stays put.
+       */}
+      {coco && (
+        <div className={tab === 'tutor' ? 'sm:hidden' : undefined}>
+          <CocoHelper
+            scene={{ kind: 'study', tab, due, mastery, cards: set.flashcards.length }}
+            onHide={onHideCoco}
+            onAction={id => {
+              if (id.startsWith('tab:')) {
+                setTab(id.slice(4) as Tab);
+                setBrowsing(false);
+              }
+            }}
+          />
+        </div>
+      )}
 
       <CardCustomizeModal
         isOpen={deckOpen}

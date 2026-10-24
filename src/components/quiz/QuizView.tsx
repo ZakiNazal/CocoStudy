@@ -263,7 +263,7 @@ export default function QuizView({
               </button>
             </div>
 
-            <span className="numeral text-2xs text-[var(--ink-3)]">
+            <span className="numeral whitespace-nowrap text-2xs text-[var(--ink-3)]">
               {graded
                 ? `${score} of ${quiz.length} correct`
                 : `${quiz.length - left} of ${quiz.length} answered`}
@@ -282,7 +282,7 @@ export default function QuizView({
         </div>
       </div>
 
-      <div ref={scroller} className="pb-safe [--pb-base:2rem] min-h-0 flex-1 overflow-y-auto px-4 pt-8 sm:px-10">
+      <div ref={scroller} className="pb-safe [--pb-base:2rem] sm:[--pb-base:6rem] min-h-0 flex-1 overflow-y-auto px-4 pt-8 sm:px-10">
         <div className="mx-auto max-w-2xl">
           {generationError && (
             <div className="mb-6">

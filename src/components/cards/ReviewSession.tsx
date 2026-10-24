@@ -264,7 +264,7 @@ export default function ReviewSession({ cards, onGrade, onBrowse, onCustomize }:
 
       <div
         ref={stage}
-        className="pb-safe [--pb-base:2rem] flex min-h-0 flex-1 flex-col justify-center overflow-y-auto px-4 pt-8 sm:px-10"
+        className="pb-safe [--pb-base:2rem] sm:[--pb-base:6rem] flex min-h-0 flex-1 flex-col justify-center overflow-y-auto px-4 pt-8 sm:px-10"
       >
         <div className="mx-auto w-full max-w-2xl">
           <div
@@ -320,7 +320,7 @@ export default function ReviewSession({ cards, onGrade, onBrowse, onCustomize }:
                   className="mt-10 flex min-h-12 w-full items-center justify-center gap-3 rounded-[4px] border border-[var(--rule)] py-3.5 font-mono text-2xs uppercase tracking-[0.1em] text-[var(--ink-2)] transition-colors duration-150 hover:border-[var(--ink)] hover:text-[var(--ink)]"
                 >
                   Show answer
-                  <kbd className="numeral rounded-[2px] border border-[var(--rule)] px-1.5 py-0.5 text-[0.65rem]">
+                  <kbd className="numeral rounded-[2px] border border-[var(--rule)] px-1.5 py-0.5 text-[0.65rem] pointer-coarse:hidden">
                     Space
                   </kbd>
                 </button>
@@ -346,7 +346,7 @@ export default function ReviewSession({ cards, onGrade, onBrowse, onCustomize }:
                       {label}
                     </span>
                     <span className="numeral text-2xs text-[var(--ink-3)]">{preview[value]}</span>
-                    <kbd className="numeral hidden text-[0.6rem] text-[var(--ink-3)] sm:block">{key}</kbd>
+                    <kbd className="numeral hidden text-[0.6rem] text-[var(--ink-3)] sm:pointer-fine:block">{key}</kbd>
                   </button>
                 ))}
               </div>

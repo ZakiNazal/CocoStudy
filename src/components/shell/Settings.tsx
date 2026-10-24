@@ -254,6 +254,19 @@ export default function Settings({ open, onClose, meta, onUpdate, sets, onRestor
           </p>
         </Section>
 
+        <Section label="Coco, the study helper">
+          <Segmented
+            label="Show Coco"
+            options={['on', 'off'] as const}
+            value={meta.coco === false ? 'off' : 'on'}
+            onChange={choice => void onUpdate({ coco: choice === 'on' })}
+            format={choice => (choice === 'on' ? 'Shown' : 'Hidden')}
+          />
+          <p className="mt-3 text-xs text-[var(--ink-2)]">
+            Coco offers tips for the screen you are on and shortcuts to the next step.
+          </p>
+        </Section>
+
         <Section label="Your data">
           <div className="flex flex-wrap items-center gap-2">
             <Button
