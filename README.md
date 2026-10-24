@@ -16,16 +16,13 @@
 [![Tailwind CSS v4](https://img.shields.io/badge/Tailwind_CSS-v4-38B2AC?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
 
+### ▶ Video Showcase
+
+
+
+https://github.com/user-attachments/assets/3e172e42-03d1-4725-9ffb-9a8c07b17d31
+
 <br />
-
-<img src="docs/screenshots/hero_intake.png" alt="CocoStudy Hero & Intake" width="100%" />
-
-<br />
-<br />
-
-### ▶ See it in 22 seconds
-
-<a href="docs/cocostudy-launch.mp4"><img src="docs/cocostudy-launch.jpg" alt="CocoStudy launch video: drop in a lecture, get a study guide, flashcards and a tutor" width="100%" /></a>
 
 </div>
 
