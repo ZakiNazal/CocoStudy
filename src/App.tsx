@@ -84,20 +84,19 @@ export default function App() {
   };
 
   return (
-    <div className="flex h-full w-full overflow-hidden bg-[var(--paper)]">
+    <div className="flex h-full w-full overflow-hidden bg-(--paper)">
       {/* Mobile scrim */}
       {navOpen && (
         <button
           aria-label="Close library"
           onClick={() => setNavOpen(false)}
-          className="fixed inset-0 z-30 bg-[var(--ink)]/25 md:hidden"
+          className="fixed inset-0 z-30 bg-(--ink)/25 md:hidden"
         />
       )}
 
       <div
-        className={`fixed inset-y-0 left-0 z-40 transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] md:relative md:translate-x-0 ${
-          navOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
+        className={`fixed inset-y-0 left-0 z-40 transition-transform duration-300 ease-(--cubic-bezier(0.4,0,0.2,1)) md:relative md:translate-x-0 ${navOpen ? 'translate-x-0' : '-translate-x-full'
+          }`}
       >
         <Sidebar
           sets={sets}
@@ -141,7 +140,7 @@ export default function App() {
             onClick={() => setNavOpen(true)}
             aria-label="Open library"
             aria-expanded={false}
-            className="absolute left-3 top-3 z-50 flex h-11 w-11 items-center justify-center rounded-[4px] border border-[var(--rule)] bg-[var(--paper-2)] text-[var(--ink)] active:bg-[var(--paper-3)] md:hidden"
+            className="absolute left-3 top-3 z-50 flex h-11 w-11 items-center justify-center rounded-[4px] border border-(--rule) bg-(--paper-2) text-(--ink) md:hidden"
           >
             <Menu size={18} />
           </button>

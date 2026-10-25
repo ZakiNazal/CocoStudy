@@ -69,16 +69,17 @@
   --green-wash: #DCFCE7;
   --cyan-wash: #E0F2FE;
 
-  /* Coco, the helper. Cream like the mark's little reader, a bandana in the
-     brand blue, and an antenna bulb that is the yellow highlighter. */
-  --coco-line: #2A2733;
-  --coco-body: #FBF7EC;
-  --coco-shade: #E3D9C4;
-  --coco-shine: #FFFFFF;
-  --coco-eye: #1B1A22;
+  /* Coco, the helper. The mark itself as a pixel pet: a cobalt C in the brand
+     blue, hugging an open book, with a sprout tipped in the yellow highlighter. */
+  --coco-line: #111827;
+  --coco-body: #0052FF;
+  --coco-shade: #0038B8;
+  --coco-shine: #7FA9FF;
+  --coco-white: #FFFFFF;
+  --coco-eye: #111827;
   --coco-blush: #FF9EBD;
-  --coco-scarf: #0052FF;
-  --coco-scarf-2: #0038B8;
+  --coco-page: #FFFFFF;
+  --coco-page-2: #B8C8EE;
   --coco-bulb: #FACC15;
 }
 
@@ -110,11 +111,15 @@
   --accent-strong: #7FA9FF;
   --accent-wash: #16233F;
 
-  /* The outline doubles as the antenna stalk, which is drawn on the paper
-     itself — dark ink there would vanish into a near-black page. */
-  --coco-line: #8F8AA0;
-  --coco-scarf: #3D7BFF;
-  --coco-scarf-2: #2456D6;
+  /* On near-black paper the lifted blue body carries the silhouette, so the
+     outline stays dark and keeps the book and feet crisp against it. */
+  --coco-line: #07080D;
+  --coco-body: #3D7BFF;
+  --coco-shade: #2456D6;
+  --coco-shine: #A9C4FF;
+  --coco-eye: #0F0E12;
+  --coco-page: #EDECE7;
+  --coco-page-2: #9AA8CC;
   --coco-bulb: #F8EE86;
 }
 
